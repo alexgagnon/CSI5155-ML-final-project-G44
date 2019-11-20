@@ -110,7 +110,7 @@ can't make the classification just by looking at the IP packet header
 ## Model parameter search
 
 - used grid search for hyper-parameters, chosen manually, following scikit learn
-- number of base decision tree models was most important: smaller = simpler so faster, less change to overfit, more change to underfit.
+- number of base decision tree models was most important: smaller = simpler so faster, less chance to overfit, more chance to underfit.
 - three other metrics: max tree depth, max features, min samples leaf
 - for GBT, learning rate is the rate t oapply the gradient in each itration: larger = faster it will converge, but less accurate
 - Ginin is the gini impurity versus entropy which calculates information gain. Gini is easier to calculate, but doesn't change the CV metrics much
