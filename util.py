@@ -2,28 +2,41 @@ import pandas as pd
 import plotly_express as px
 
 
-def print_df_meta(dataframe):
+def print_df_meta(df, label='', summarize=False):
     """Prints the pandas dataframe information"""
-    print('--- INFO ---')
-    print(dataframe.info())
     print()
-    print('--- DESCRIBE ---')
-    print(dataframe.describe())
-    print()
-    print('--- HEAD ---')
-    print(dataframe.head())
-    print()
+    print(label)
+    if (summarize):
+        print(df.info())
+    else:
+        print('--- INFO ---')
+        print(df.info())
+        print()
+        print('--- DESCRIBE ---')
+        print(df.describe())
+        print()
+        print('--- HEAD ---')
+        print(df.head())
+        print()
 
-    # visualise null table
-    null_table = null_analysis(dataframe)
-    px.bar(null_table.reset_index(), x='index',
-           y='percentage', text='counts', height=500)
+
+def report_cluster(X_train, y_test, y_pred):
+    correct = 0
+
+    for i in range(len(X)):
+        predict_me = np.array(X[i].astype(float))
+        predict_me = predict_me.reshape(-1, len(predict_me))
+        prediction = kmeans.predict(predict_me)
+        if prediction[0] == y[i]:
+            correct += 1
+
+    print(correct/len(X))
 
 
 def null_analysis(df):
     '''
     desc: get nulls for each column in counts & percentages
-    arg: dataframe
+    arg: df
     return: dataframe
     '''
     null_cnt = df.isnull().sum()  # calculate null counts
