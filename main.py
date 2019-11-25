@@ -20,6 +20,8 @@ SHOW_NULLS = False
 SHOW_SUMMARIES = True
 SHOW_PLOTS = False
 SHOW_PLOTS_AS_SUBPLOT = False
+ENCODER = LabelEncoder()
+NORMALIZE = Normalizer
 REMOVE_NULLS = True
 REPLACE_NULL_VALUE = np.nan
 SEED = 42
@@ -35,40 +37,39 @@ FILES = {
 CLASSIFIERS = {
     'decision_tree': {
         'steps': [
-            ('normalize', Normalizer()),
+            ('normalize', NORMALIZE()),
             ('fit', DecisionTreeClassifier(random_state=SEED))
         ],
         'parameters': {}
     },
     'hoeffding_tree': {
         'steps': [
-            ('normalize', Normalizer()),
+            ('normalize', NORMALIZE()),
             ('fit', HoeffdingTree())
         ],
         'parameters': {}
     },
     'kNN': {
         'steps': [
-            ('normalize', Normalizer()),
+            ('normalize', NORMALIZE()),
             ('fit', KNeighborsClassifier())
         ],
         'parameters': {}
     },
     'SGD (SVM)': {
         'steps': [
-            ('normalize', Normalizer()),
+            ('normalize', NORMALIZE()),
             ('fit', SGDClassifier(random_state=SEED))
         ]
     },
     'k-means': {
         'steps': [
-            ('normalize', Normalizer()),
+            ('normalize', NORMALIZE()),
             ('fit', KMeans(n_clusters=2, random_state=SEED))
         ]
     }
 }
 EXCLUDE_CLASSIFIERS = ['hoeffding_tree']
-encoder = LabelEncoder()
 
 for dataset_label, filename in FILES.items():
     dataset, meta = loadarff(FILE_PATH_DIR + filename)
@@ -138,11 +139,6 @@ for dataset_label, filename in FILES.items():
     for classifier_label in CLASSIFIERS:
         if classifier_label in EXCLUDE_CLASSIFIERS:
             continue
-        # if classifier_label == 'k-means':
-            # y_train[TARGET_CLASS] = label_encoder.transform(
-            #     y_train[TARGET_CLASS])
-            # y_test[TARGET_CLASS] = label_encoder.transform(
-            #     y_test[TARGET_CLASS])
 
         classifier = CLASSIFIERS[classifier_label]
         pipeline = Pipeline(classifier['steps'])

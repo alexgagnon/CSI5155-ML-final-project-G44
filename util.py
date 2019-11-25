@@ -1,8 +1,27 @@
+import numpy as np
 import pandas as pd
-import plotly_express as px
+import seaborn as sns
+import matplotlib.pyplot as plt
+from tabulate import tabulate
 
 
-def print_df_meta(df, label='', summarize=False):
+def sanitize_data(data, null_identifier=np.nan, null_replacement_value=None, remove_nulls=True):
+    # need to handle that the dataset uses -1 as 'null'
+    if (null_replacement_value != None):
+        print('Replacing {} with {}'.format(
+            null_identifier, null_replacement_value))
+        data = data.replace(null_identifier, null_replacement_value)
+    if (remove_nulls):
+        nulls_before = data.isna().sum().sum()
+        data = data.dropna(axis=0)
+        nulls_after = data.isna().sum().sum()
+        print("Removed {} nulls, {} left".format(
+            nulls_before - nulls_after, nulls_after))
+        data = data.reset_index(drop=True)
+    return data
+
+
+def print_metadata(df, label='', summarize=True):
     """Prints the pandas dataframe information"""
     print()
     print(label)
@@ -20,6 +39,45 @@ def print_df_meta(df, label='', summarize=False):
         print()
 
 
+def print_eda(data, X, y, target_class, show_feature_distributions=True, show_plots_as_subplot=True, show_totals=True, show_correlations=True, show_box_plot=True):
+    # NOTE: plt.show(block=False) is async, need at least one plt.show()
+    # to pause execution so you can read the graph
+
+    # distribution of values in each feature
+    if (show_feature_distributions):
+        if (show_plots_as_subplot):
+            fig, axes = plt.subplots(ncols=4, nrows=6, figsize=(15, 5))
+            a = [i for i in axes for i in i]
+            for i, ax in enumerate(a):
+                sns.distplot(X[X.columns[i - 1]], ax=ax)
+            plt.tight_layout()
+            plt.show(block=False)
+        else:
+            for i in X.columns:
+                plt.figure(figsize=(15, 5))
+                sns.distplot(X[i])
+                plt.show(block=False)
+
+    if (show_box_plot):
+        X.plot(kind='box')
+        plt.show()
+
+    # totals for classes
+    if (show_totals):
+        cmap = sns.color_palette("Set2")
+        sns.countplot(x=target_class, data=data, palette=cmap)
+        plt.xticks(rotation=45)
+        plt.show(block=False)
+
+    # correlation of features
+    if (show_correlations):
+        corr = data[data.columns[1:]].corr()
+        plt.figure(figsize=(15, 8))
+        sns.heatmap(corr, cmap=sns.color_palette("RdBu_r", 20))
+
+    plt.show()
+
+
 def report_cluster(X_train, y_test, y_pred):
     correct = 0
 
@@ -33,17 +91,15 @@ def report_cluster(X_train, y_test, y_pred):
     print(correct/len(X))
 
 
-def null_analysis(df):
-    '''
-    desc: get nulls for each column in counts & percentages
-    arg: df
-    return: dataframe
-    '''
-    null_cnt = df.isnull().sum()  # calculate null counts
-    null_cnt = null_cnt[null_cnt != 0]  # remove non-null cols
-    null_percent = null_cnt / len(df) * 100  # calculate null percentages
-    null_table = pd.concat(
-        [pd.DataFrame(null_cnt), pd.DataFrame(null_percent)], axis=1)
-    null_table.columns = ['counts', 'percentage']
-    null_table.sort_values('counts', ascending=False, inplace=True)
-    return null_table
+def print_cross_validation_results(results):
+    accuracies = results['accuracies']
+    precisions = results['precisions']
+    recalls = results['recalls']
+    table = [[fold_index + 1, accuracies[fold_index], precisions[fold_index], recalls[fold_index]]
+             for fold_index in range(len(accuracies))]
+
+    table.append(['avg', accuracies.mean(), precisions.mean(), recalls.mean()])
+    table.append(['std', accuracies.std() * 2,
+                  precisions.std() * 2, recalls.std() * 2])
+    print(tabulate(table, headers=['Fold', 'Accuracy', 'Precision', 'Recall']))
+    print()
