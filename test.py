@@ -1,4 +1,4 @@
-from copy import deepcopy
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +9,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import RFE, RFECV
 # from sklearn.impute import SimpleImputer
-# from sklearn.linear_model import SGDClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import roc_curve, auc, accuracy_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split, StratifiedKFold
 # from sklearn.pipeline import Pipeline
@@ -19,6 +19,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from skmultiflow.trees import HoeffdingTree
 from util import print_metadata, print_eda, sanitize_data, print_cross_validation_results
 from streamz.dataframe import DataFrame as StreamingDataFrame
+from sklearn.ensemble import VotingClassifier, RandomForestClassifier, GradientBoostingClassifier
 
 CROSS_VALIDATION_FOLDS = 10
 FILES = {
@@ -29,24 +30,38 @@ FILES = {
     # dropped due to inconsistent features compared to the other datasets
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
-SHOW_FEATURE_DESCRIPTIONS = True
-SHOW_METADATA = True
-SHOW_EDA = True
-SHOW_ROC = True
+RFE_COLUMNS = 5
+SHOW_FEATURE_DESCRIPTIONS = False
+SHOW_METADATA = False
+SHOW_EDA = False
+SHOW_ROC = False
+PRINT_ROC = True
 SHOW_CROSS_VALIDATION_RESULTS = True
+PRINT_CROSS_VALIDATION_TO_FILE = True
 SEED = 42
 TARGET_CLASS = 'class1'
 CLASSIFIERS = {
     'tree': DecisionTreeClassifier(),
-    # 'knn': KNeighborsClassifier(),
+    'knn': KNeighborsClassifier(),
+    'rf': RandomForestClassifier(n_estimators=10),
+    'gb': GradientBoostingClassifier(),
+    'svm': SVC()
+    # 'voting': VotingClassifier()
     # 'kmeans': KMeans(),
     # 'hoeffding': HoeffdingTree()
 }
+OUTPUT_DIR = 'results'
+
+try:
+    os.makedirs(OUTPUT_DIR)
+except OSError:
+    pass
+
 
 encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
 normalizer = RobustScaler()  # {None, Normalizer, StandardScaler, RobustScaler}
-feature_selector = None  # {None, 'PCA', 'RFE', 'normal-distribution'}
-pca = PCA(.95)
+feature_selector = 'PCA'  # {None, 'PCA', 'RFE', 'normal-distribution'}
+pca = PCA(.80)
 
 for dataset_label, filename in FILES.items():
     dataset, meta = loadarff(FILE_PATH_DIR + filename)
@@ -105,11 +120,11 @@ for dataset_label, filename in FILES.items():
     classifier_results = {}
 
     for classifier_name, classifier in CLASSIFIERS.items():
-        X_train = deepcopy(X_train)
-        y_train = deepcopy(y_train)
+        # X_train = deepcopy(X_train)
+        # y_train = deepcopy(y_train)
         if (feature_selector == 'RFE' or feature_selector == 'RFECV'):
             old_columns = X_train.columns
-            classifier = RFE(classifier, n_features_to_select=5)
+            classifier = RFE(classifier, n_features_to_select=RFE_COLUMNS)
             print()
             print("Number of features before selection: {}".format(
                 len(X_train.columns)))
@@ -167,7 +182,13 @@ for dataset_label, filename in FILES.items():
 
         if (SHOW_CROSS_VALIDATION_RESULTS):
             print(classifier_name)
-            print_cross_validation_results(results)
+            feature_selector_name = feature_selector
+            if (feature_selector == 'RFE' or feature_selector == 'RFECF'):
+                feature_selector_name += RFE_COLUMNS
+            file_name = "{}/{}-{}-{}.txt".format(
+                OUTPUT_DIR, dataset_label, classifier_name, feature_selector_name)
+            print_cross_validation_results(
+                results, file_name=file_name, print_to_file=PRINT_CROSS_VALIDATION_TO_FILE)
 
         # code modified from sklearn site for computing ROC with cross
         # validation

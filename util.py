@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -6,6 +7,7 @@ from tabulate import tabulate
 
 
 def sanitize_data(data, null_identifier=np.nan, null_replacement_value=None, remove_nulls=True):
+    print("Rows before sanitization: {}".format(data.shape[0]))
     # need to handle that the dataset uses -1 as 'null'
     if (null_replacement_value != None):
         print('Replacing {} with {}'.format(
@@ -18,6 +20,7 @@ def sanitize_data(data, null_identifier=np.nan, null_replacement_value=None, rem
         print("Removed {} nulls, {} left".format(
             nulls_before - nulls_after, nulls_after))
         data = data.reset_index(drop=True)
+    print("Rows after sanitization: {}".format(data.shape[0]))
     return data
 
 
@@ -91,7 +94,7 @@ def report_cluster(X_train, y_test, y_pred):
     print(correct/len(X))
 
 
-def print_cross_validation_results(results):
+def print_cross_validation_results(results, file_name='result.txt', print_to_file=False):
     accuracies = results['accuracies']
     precisions = results['precisions']
     recalls = results['recalls']
@@ -101,5 +104,9 @@ def print_cross_validation_results(results):
     table.append(['avg', accuracies.mean(), precisions.mean(), recalls.mean()])
     table.append(['std', accuracies.std() * 2,
                   precisions.std() * 2, recalls.std() * 2])
-    print(tabulate(table, headers=['Fold', 'Accuracy', 'Precision', 'Recall']))
+    sheet = tabulate(table, headers=['Fold', 'Accuracy', 'Precision', 'Recall'])
+    print(sheet)
+    if (print_to_file):
+        with open(file_name,'w+') as writer:
+            writer.write(sheet)
     print()
