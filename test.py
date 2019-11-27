@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -5,6 +6,8 @@ from itertools import combinations
 from scipy import interp, stats
 from scipy.io.arff import loadarff
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.feature_selection import RFE, RFECV
 # from sklearn.impute import SimpleImputer
 # from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import roc_curve, auc, accuracy_score, precision_score, recall_score
@@ -25,10 +28,11 @@ FILES = {
     # dropped due to inconsistent features compared to the other datasets
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
+SHOW_FEATURE_DESCRIPTIONS = True
 SHOW_METADATA = False
 SHOW_EDA = False
 SHOW_ROC = False
-SHOW_CROSS_VALIDATION_RESULTS = False
+SHOW_CROSS_VALIDATION_RESULTS = True
 SEED = 42
 TARGET_CLASS = 'class1'
 CLASSIFIERS = {
@@ -37,8 +41,10 @@ CLASSIFIERS = {
     # 'kmeans': KMeans()
 }
 
-encode_label = LabelEncoder  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
-normalize = Normalizer  # {Normalizer, StandardScaler, RobustScaler}
+encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
+normalizer = RobustScaler()  # {None, Normalizer, StandardScaler, RobustScaler}
+feature_selector = None  # {None, 'PCA', 'RFE', 'normal-distribution'}
+pca = PCA(.95)
 
 for dataset_label, filename in FILES.items():
     dataset, meta = loadarff(FILE_PATH_DIR + filename)
@@ -48,12 +54,36 @@ for dataset_label, filename in FILES.items():
     data = sanitize_data(data, -1, np.nan)
 
     # extract samples features and target feature from dataframe
-    # we normalize the features as they contain very large values and from EDA
     # analysis they aren't normally distributed
+    X = pd.DataFrame(data.drop(TARGET_CLASS, axis=1))
     # we convert the target from categorical strings to labels 0 and 1
-    X = pd.DataFrame(normalize().fit_transform(
-        data.drop(TARGET_CLASS, axis=1)))
-    y = pd.DataFrame(encode_label().fit_transform(data[TARGET_CLASS]))
+    y = pd.DataFrame(encoder.fit_transform(data[TARGET_CLASS]))
+
+    columns = X.columns
+
+    # we normalize the features as they contain very large values and from EDA
+    if (normalizer != None):
+        if (SHOW_FEATURE_DESCRIPTIONS):
+            print()
+            print("Before normalization:")
+            print(X.describe())
+        X = pd.DataFrame(normalizer.fit_transform(X), columns=columns)
+        if (SHOW_FEATURE_DESCRIPTIONS):
+            print()
+            print("After normalization:")
+            print(X.describe())
+
+    # try to do feature selection to improve performance/accuracy
+    # PCA doesn't depend on an estimator
+    # NOTE: if using PCA, you will lose the column headers
+    if (feature_selector == 'PCA'):
+        print()
+        print("Number of features before selection: {}".format(len(X.columns)))
+        print(list(X.columns))
+        X = pd.DataFrame(pca.fit_transform(X))
+        print()
+        print("Number of features after selection: {}".format(len(X.columns)))
+        print(list(X.columns))
 
     if (SHOW_METADATA):
         print_metadata(data, X, y, TARGET_CLASS, summarize=True)
@@ -73,6 +103,27 @@ for dataset_label, filename in FILES.items():
     classifier_results = {}
 
     for classifier_name, classifier in CLASSIFIERS.items():
+        X_train = deepcopy(X_train)
+        y_train = deepcopy(y_train)
+        print(X_train.columns)
+        if (feature_selector == 'RFE' or feature_selector == 'RFECV'):
+            old_columns = X_train.columns
+            classifier = RFE(classifier, n_features_to_select=5)
+            print()
+            print("Number of features before selection: {}".format(
+                len(X_train.columns)))
+            print(list(X_train.columns))
+            X_train = pd.DataFrame(classifier.fit_transform(
+                X_train, y_train.values.ravel()))
+            print()
+            new_columns = []
+            for i, val in enumerate(classifier.support_):
+                if (val == True):
+                    new_columns.append(old_columns[i])
+            print("Number of features after selection: {}".format(
+                len(new_columns)))
+            print(new_columns)
+
         accuracies = []
         precisions = []
         recalls = []
@@ -94,8 +145,6 @@ for dataset_label, filename in FILES.items():
                 fold_y_test, y_pred, average='binary'))
             recalls.append(recall_score(
                 fold_y_test, y_pred, average='binary'))
-
-            print(set(fold_y_test) - set(y_pred))
 
             if (SHOW_ROC):
                 probabilities = model.predict_proba(fold_X_test)
@@ -152,28 +201,29 @@ for dataset_label, filename in FILES.items():
         print()
 
     # compute statistical significance of differences in models
-    print('Classifier evaluations')
-    model_pairs = list(combinations(CLASSIFIERS.keys(), 2))
-    model_triples = list(combinations(CLASSIFIERS.keys(), 3))
+    if (len(CLASSIFIERS) > 1):
+        print('Classifier evaluations')
+        model_pairs = list(combinations(CLASSIFIERS.keys(), 2))
+        model_triples = list(combinations(CLASSIFIERS.keys(), 3))
 
-    for a, b in model_pairs:
-        print("{} vs. {}".format(a, b))
-        a = classifier_results[a]['accuracies']
-        b = classifier_results[b]['accuracies']
+        for a, b in model_pairs:
+            print("{} vs. {}".format(a, b))
+            a = classifier_results[a]['accuracies']
+            b = classifier_results[b]['accuracies']
 
-        ttest = stats.ttest_rel(a, b)
-        wilcoxon = stats.wilcoxon(a, b)
-        print("Paired t-test: {}, pvalue = {}".format(ttest.statistic, ttest.pvalue))
-        print("Wilcoxons': {}, pvalue = {}".format(
-            wilcoxon.statistic, wilcoxon.pvalue))
-        print()
+            ttest = stats.ttest_rel(a, b)
+            wilcoxon = stats.wilcoxon(a, b)
+            print("Paired t-test: {}, pvalue = {}".format(ttest.statistic, ttest.pvalue))
+            print("Wilcoxons': {}, pvalue = {}".format(
+                wilcoxon.statistic, wilcoxon.pvalue))
+            print()
 
-    for a, b, c in model_triples:
-        print("{} vs. {} vs. {}".format(a, b, c))
-        a = classifier_results[a]['accuracies']
-        b = classifier_results[b]['accuracies']
-        c = classifier_results[c]['accuracies']
+        for a, b, c in model_triples:
+            print("{} vs. {} vs. {}".format(a, b, c))
+            a = classifier_results[a]['accuracies']
+            b = classifier_results[b]['accuracies']
+            c = classifier_results[c]['accuracies']
 
-        friedman = stats.friedmanchisquare(a, b, c)
-        print("Friedmans': {}".format(friedman.statistic, friedman.pvalue))
-        print()
+            friedman = stats.friedmanchisquare(a, b, c)
+            print("Friedmans': {}".format(friedman.statistic, friedman.pvalue))
+            print()
