@@ -18,6 +18,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from skmultiflow.trees import HoeffdingTree
 from util import print_metadata, print_eda, sanitize_data, print_cross_validation_results
+from streamz.dataframe import DataFrame as StreamingDataFrame
 
 CROSS_VALIDATION_FOLDS = 10
 FILES = {
@@ -29,16 +30,17 @@ FILES = {
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
 SHOW_FEATURE_DESCRIPTIONS = True
-SHOW_METADATA = False
-SHOW_EDA = False
-SHOW_ROC = False
+SHOW_METADATA = True
+SHOW_EDA = True
+SHOW_ROC = True
 SHOW_CROSS_VALIDATION_RESULTS = True
 SEED = 42
 TARGET_CLASS = 'class1'
 CLASSIFIERS = {
     'tree': DecisionTreeClassifier(),
-    'knn': KNeighborsClassifier(),
-    # 'kmeans': KMeans()
+    # 'knn': KNeighborsClassifier(),
+    # 'kmeans': KMeans(),
+    # 'hoeffding': HoeffdingTree()
 }
 
 encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
@@ -86,7 +88,7 @@ for dataset_label, filename in FILES.items():
         print(list(X.columns))
 
     if (SHOW_METADATA):
-        print_metadata(data, X, y, TARGET_CLASS, summarize=True)
+        print_metadata(data, summarize=True)
 
     if (SHOW_EDA):
         print_eda(data, X, y, TARGET_CLASS)
@@ -105,7 +107,6 @@ for dataset_label, filename in FILES.items():
     for classifier_name, classifier in CLASSIFIERS.items():
         X_train = deepcopy(X_train)
         y_train = deepcopy(y_train)
-        print(X_train.columns)
         if (feature_selector == 'RFE' or feature_selector == 'RFECV'):
             old_columns = X_train.columns
             classifier = RFE(classifier, n_features_to_select=5)
