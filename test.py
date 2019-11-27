@@ -41,27 +41,27 @@ PRINT_CROSS_VALIDATION_TO_FILE = True
 SEED = 42
 TARGET_CLASS = 'class1'
 CLASSIFIERS = {
-    'tree': DecisionTreeClassifier(),
+    'tree': DecisionTreeClassifier(random_state=SEED),
     'knn': KNeighborsClassifier(),
-    'rf': RandomForestClassifier(n_estimators=10),
-    'gb': GradientBoostingClassifier(),
-    'svm': SVC()
+    'rf': RandomForestClassifier(n_estimators=10, random_state=SEED),
+    'gb': GradientBoostingClassifier(random_state=SEED),
+    'svm': SVC(random_state=SEED)
     # 'voting': VotingClassifier()
     # 'kmeans': KMeans(),
     # 'hoeffding': HoeffdingTree()
 }
 OUTPUT_DIR = 'results'
 
+encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
+normalizer = RobustScaler()  # {None, Normalizer, StandardScaler, RobustScaler}
+# {None, 'RFE', 'manual'} 'PCA' was found to LOWER the accuracies
+feature_selectors = [None, 'RFE']
+pca = PCA(.80)
+
 try:
     os.makedirs(OUTPUT_DIR)
 except OSError:
     pass
-
-
-encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
-normalizer = RobustScaler()  # {None, Normalizer, StandardScaler, RobustScaler}
-feature_selector = 'PCA'  # {None, 'PCA', 'RFE', 'normal-distribution'}
-pca = PCA(.80)
 
 for dataset_label, filename in FILES.items():
     dataset, meta = loadarff(FILE_PATH_DIR + filename)
@@ -90,17 +90,18 @@ for dataset_label, filename in FILES.items():
             print("After normalization:")
             print(X.describe())
 
+    # DEPRECATED: PCA reduces the accuracies across the board
     # try to do feature selection to improve performance/accuracy
     # PCA doesn't depend on an estimator
     # NOTE: if using PCA, you will lose the column headers
-    if (feature_selector == 'PCA'):
-        print()
-        print("Number of features before selection: {}".format(len(X.columns)))
-        print(list(X.columns))
-        X = pd.DataFrame(pca.fit_transform(X))
-        print()
-        print("Number of features after selection: {}".format(len(X.columns)))
-        print(list(X.columns))
+    # if (feature_selector == 'PCA'):
+    #     print()
+    #     print("Number of features before selection: {}".format(len(X.columns)))
+    #     print(list(X.columns))
+    #     X = pd.DataFrame(pca.fit_transform(X))
+    #     print()
+    #     print("Number of features after selection: {}".format(len(X.columns)))
+    #     print(list(X.columns))
 
     if (SHOW_METADATA):
         print_metadata(data, summarize=True)
@@ -120,107 +121,107 @@ for dataset_label, filename in FILES.items():
     classifier_results = {}
 
     for classifier_name, classifier in CLASSIFIERS.items():
-        # X_train = deepcopy(X_train)
-        # y_train = deepcopy(y_train)
-        if (feature_selector == 'RFE' or feature_selector == 'RFECV'):
-            old_columns = X_train.columns
-            classifier = RFE(classifier, n_features_to_select=RFE_COLUMNS)
-            print()
-            print("Number of features before selection: {}".format(
-                len(X_train.columns)))
-            print(list(X_train.columns))
-            X_train = pd.DataFrame(classifier.fit_transform(
-                X_train, y_train.values.ravel()))
-            print()
-            new_columns = []
-            for i, val in enumerate(classifier.support_):
-                if (val == True):
-                    new_columns.append(old_columns[i])
-            print("Number of features after selection: {}".format(
-                len(new_columns)))
-            print(new_columns)
+        for feature_selector in feature_selectors:
+            if (feature_selector == 'RFE' or feature_selector == 'RFECV'):
+                old_columns = X_train.columns
+                classifier = RFE(classifier, n_features_to_select=RFE_COLUMNS)
+                print()
+                print("Number of features before selection: {}".format(
+                    len(X_train.columns)))
+                print(list(X_train.columns))
+                X_train = pd.DataFrame(classifier.fit_transform(
+                    X_train, y_train.values.ravel()))
+                print()
+                new_columns = []
+                for i, val in enumerate(classifier.support_):
+                    if (val == True):
+                        new_columns.append(old_columns[i])
+                print("Number of features after selection: {}".format(
+                    len(new_columns)))
+                print(new_columns)
 
-        accuracies = []
-        precisions = []
-        recalls = []
-        tprs = []
-        aucs = []
-        mean_fpr = np.linspace(0, 1, 100)
+            accuracies = []
+            precisions = []
+            recalls = []
+            tprs = []
+            aucs = []
+            mean_fpr = np.linspace(0, 1, 100)
 
-        for fold, split in enumerate(cross_validation.split(X_train, y_train)):
-            fold_train_indexes, fold_test_indexes = split
-            fold_X_train = X_train.iloc[fold_train_indexes]
-            fold_y_train = y_train.iloc[fold_train_indexes]
-            fold_X_test = X_train.iloc[fold_test_indexes]
-            fold_y_test = y_train.iloc[fold_test_indexes]
-            model = classifier.fit(fold_X_train, fold_y_train.values.ravel())
-            y_pred = model.predict(fold_X_test)
+            for fold, split in enumerate(cross_validation.split(X_train, y_train)):
+                fold_train_indexes, fold_test_indexes = split
+                fold_X_train = X_train.iloc[fold_train_indexes]
+                fold_y_train = y_train.iloc[fold_train_indexes]
+                fold_X_test = X_train.iloc[fold_test_indexes]
+                fold_y_test = y_train.iloc[fold_test_indexes]
+                model = classifier.fit(
+                    fold_X_train, fold_y_train.values.ravel())
+                y_pred = model.predict(fold_X_test)
 
-            accuracies.append(accuracy_score(fold_y_test, y_pred))
-            precisions.append(precision_score(
-                fold_y_test, y_pred, average='binary'))
-            recalls.append(recall_score(
-                fold_y_test, y_pred, average='binary'))
+                accuracies.append(accuracy_score(fold_y_test, y_pred))
+                precisions.append(precision_score(
+                    fold_y_test, y_pred, average='binary'))
+                recalls.append(recall_score(
+                    fold_y_test, y_pred, average='binary'))
 
+                if (SHOW_ROC):
+                    probabilities = model.predict_proba(fold_X_test)
+                    fpr, tpr, thresholds = roc_curve(
+                        fold_y_test, probabilities[:, 1])
+                    tprs.append(interp(mean_fpr, fpr, tpr))
+                    tprs[-1][0] = 0.0
+                    roc_auc = auc(fpr, tpr)
+                    aucs.append(roc_auc)
+                    plt.plot()
+                    plt.plot(fpr, tpr, lw=1, alpha=0.3,
+                             label='ROC fold {} (AUC = {:0.2f})'.format(fold, roc_auc))
+
+            results = {
+                'accuracies': np.array(accuracies),
+                'precisions': np.array(precisions),
+                'recalls': np.array(recalls)
+            }
+
+            if (SHOW_CROSS_VALIDATION_RESULTS):
+                print(classifier_name)
+                feature_selector_name = feature_selector
+                if (feature_selector == 'RFE' or feature_selector == 'RFECF'):
+                    feature_selector_name += str(RFE_COLUMNS)
+                file_name = "{}/{}-{}-{}.txt".format(
+                    OUTPUT_DIR, dataset_label, classifier_name, feature_selector_name)
+                print_cross_validation_results(
+                    results, file_name=file_name, print_to_file=PRINT_CROSS_VALIDATION_TO_FILE)
+
+            # code modified from sklearn site for computing ROC with cross
+            # validation
             if (SHOW_ROC):
-                probabilities = model.predict_proba(fold_X_test)
-                fpr, tpr, thresholds = roc_curve(
-                    fold_y_test, probabilities[:, 1])
-                tprs.append(interp(mean_fpr, fpr, tpr))
-                tprs[-1][0] = 0.0
-                roc_auc = auc(fpr, tpr)
-                aucs.append(roc_auc)
-                plt.plot()
-                plt.plot(fpr, tpr, lw=1, alpha=0.3,
-                         label='ROC fold {} (AUC = {:0.2f})'.format(fold, roc_auc))
+                plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
+                         label='Chance', alpha=.8)
 
-        results = {
-            'accuracies': np.array(accuracies),
-            'precisions': np.array(precisions),
-            'recalls': np.array(recalls)
-        }
+                mean_tpr = np.mean(tprs, axis=0)
+                mean_tpr[-1] = 1.0
+                mean_auc = auc(mean_fpr, mean_tpr)
+                std_auc = np.std(aucs)
+                plt.plot(mean_fpr, mean_tpr, color='b',
+                         label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (
+                             mean_auc, std_auc),
+                         lw=2, alpha=.8)
 
-        if (SHOW_CROSS_VALIDATION_RESULTS):
-            print(classifier_name)
-            feature_selector_name = feature_selector
-            if (feature_selector == 'RFE' or feature_selector == 'RFECF'):
-                feature_selector_name += RFE_COLUMNS
-            file_name = "{}/{}-{}-{}.txt".format(
-                OUTPUT_DIR, dataset_label, classifier_name, feature_selector_name)
-            print_cross_validation_results(
-                results, file_name=file_name, print_to_file=PRINT_CROSS_VALIDATION_TO_FILE)
+                std_tpr = np.std(tprs, axis=0)
+                tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+                tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+                plt.fill_between(mean_fpr, tprs_lower, tprs_upper,
+                                 color='grey', alpha=.2, label=r'$\pm$ 1 std. dev.')
 
-        # code modified from sklearn site for computing ROC with cross
-        # validation
-        if (SHOW_ROC):
-            plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
-                     label='Chance', alpha=.8)
+                plt.xlim([-0.05, 1.05])
+                plt.ylim([-0.05, 1.05])
+                plt.xlabel('False Positive Rate')
+                plt.ylabel('True Positive Rate')
+                plt.title('Receiver operating characteristic example')
+                plt.legend(loc="lower right")
+                plt.show()
 
-            mean_tpr = np.mean(tprs, axis=0)
-            mean_tpr[-1] = 1.0
-            mean_auc = auc(mean_fpr, mean_tpr)
-            std_auc = np.std(aucs)
-            plt.plot(mean_fpr, mean_tpr, color='b',
-                     label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (
-                         mean_auc, std_auc),
-                     lw=2, alpha=.8)
-
-            std_tpr = np.std(tprs, axis=0)
-            tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
-            tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
-            plt.fill_between(mean_fpr, tprs_lower, tprs_upper,
-                             color='grey', alpha=.2, label=r'$\pm$ 1 std. dev.')
-
-            plt.xlim([-0.05, 1.05])
-            plt.ylim([-0.05, 1.05])
-            plt.xlabel('False Positive Rate')
-            plt.ylabel('True Positive Rate')
-            plt.title('Receiver operating characteristic example')
-            plt.legend(loc="lower right")
-            plt.show()
-
-        classifier_results[classifier_name] = results
-        print()
+            classifier_results[classifier_name] = results
+            print()
 
     # compute statistical significance of differences in models
     if (len(CLASSIFIERS) > 1):
