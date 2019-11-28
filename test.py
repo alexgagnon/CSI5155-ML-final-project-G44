@@ -1,4 +1,6 @@
 import os
+import shutil
+import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -30,7 +32,7 @@ FILES = {
     # dropped due to inconsistent features compared to the other datasets
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
-RFE_COLUMNS = 5
+RFE_COLUMNS = None
 SHOW_FEATURE_DESCRIPTIONS = False
 SHOW_METADATA = False
 SHOW_EDA = False
@@ -45,100 +47,145 @@ CLASSIFIERS = {
     'knn': KNeighborsClassifier(),
     'rf': RandomForestClassifier(n_estimators=10, random_state=SEED),
     'gb': GradientBoostingClassifier(random_state=SEED),
-    'svm': SVC(random_state=SEED)
+    'svm': SVC(random_state=SEED, gamma='scale')
     # 'voting': VotingClassifier()
     # 'kmeans': KMeans(),
     # 'hoeffding': HoeffdingTree()
 }
 OUTPUT_DIR = 'results'
+NO_RFE = ['knn', 'svm']
+FEATURE_SELECTION_DROP_COLUMNS = [
+    'min_idle', 'mean_idle', 'max_idle', 'std_idle']
+SCORING_METRIC = 'accuracy'
 
 encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
-normalizer = RobustScaler()  # {None, Normalizer, StandardScaler, RobustScaler}
+normalizer = Normalizer()  # {None, Normalizer, StandardScaler, RobustScaler}
 # {None, 'RFE', 'manual'} 'PCA' was found to LOWER the accuracies
-feature_selectors = [None, 'RFE']
-pca = PCA(.80)
+feature_selectors = [None, 'RFE', 'manual']
+# pca = PCA(.80)
 
 try:
+    shutil.rmtree(OUTPUT_DIR)
     os.makedirs(OUTPUT_DIR)
 except OSError:
     pass
 
-for dataset_label, filename in FILES.items():
-    dataset, meta = loadarff(FILE_PATH_DIR + filename)
-    data = pd.DataFrame(dataset)
+# set up logging
+logging.basicConfig(filename='results/output.log', format='',
+                    filemode='w')
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.propagate = False
+log = logger.info
 
-    # handle nulls, duplicates, etc.
-    data = sanitize_data(data, -1, np.nan)
+# store results for comparison
+classifier_results = {}
 
-    # extract samples features and target feature from dataframe
-    # analysis they aren't normally distributed
-    X = pd.DataFrame(data.drop(TARGET_CLASS, axis=1))
-    # we convert the target from categorical strings to labels 0 and 1
-    y = pd.DataFrame(encoder.fit_transform(data[TARGET_CLASS]))
+# get stats on initial data
+if (SHOW_EDA):
+    for dataset_label, filename in FILES.items():
+        dataset, meta = loadarff(FILE_PATH_DIR + filename)
+        data = pd.DataFrame(dataset)
+        # handle nulls, duplicates, etc.
+        data = sanitize_data(data, -1, np.nan)
 
-    columns = X.columns
-
-    # we normalize the features as they contain very large values and from EDA
-    if (normalizer != None):
-        if (SHOW_FEATURE_DESCRIPTIONS):
-            print()
-            print("Before normalization:")
-            print(X.describe())
-        X = pd.DataFrame(normalizer.fit_transform(X), columns=columns)
-        if (SHOW_FEATURE_DESCRIPTIONS):
-            print()
-            print("After normalization:")
-            print(X.describe())
-
-    # DEPRECATED: PCA reduces the accuracies across the board
-    # try to do feature selection to improve performance/accuracy
-    # PCA doesn't depend on an estimator
-    # NOTE: if using PCA, you will lose the column headers
-    # if (feature_selector == 'PCA'):
-    #     print()
-    #     print("Number of features before selection: {}".format(len(X.columns)))
-    #     print(list(X.columns))
-    #     X = pd.DataFrame(pca.fit_transform(X))
-    #     print()
-    #     print("Number of features after selection: {}".format(len(X.columns)))
-    #     print(list(X.columns))
-
-    if (SHOW_METADATA):
-        print_metadata(data, summarize=True)
-
-    if (SHOW_EDA):
+        # extract samples features and target feature from dataframe
+        # analysis they aren't normally distributed
+        X = pd.DataFrame(data.drop(TARGET_CLASS, axis=1))
+        # we convert the target from categorical strings to labels 0 and 1
+        y = pd.DataFrame(encoder.fit_transform(data[TARGET_CLASS]))
         print_eda(data, X, y, TARGET_CLASS)
 
-    # split samples into training and test sets
-    # MIGHT NOT NEED THIS
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=.34, random_state=SEED)
 
-    # create validatio nfolds
-    cross_validation = StratifiedKFold(
-        n_splits=CROSS_VALIDATION_FOLDS, random_state=SEED)
-
-    classifier_results = {}
-
+for dataset_label, filename in FILES.items():
+    # have to do this as DataFrame can't be deeply copied
     for classifier_name, classifier in CLASSIFIERS.items():
+
+        # to be able to see which version of a classifier is best statistically
+        classifier_versions = {}
+
         for feature_selector in feature_selectors:
-            if (feature_selector == 'RFE' or feature_selector == 'RFECV'):
+            if (classifier_name in NO_RFE and feature_selector == 'RFE'):
+                continue
+            label = "{}-{}-{}".format(dataset_label,
+                                      classifier_name, feature_selector)
+
+            log(label)
+            log('----------------------')
+            dataset, meta = loadarff(FILE_PATH_DIR + filename)
+            data = pd.DataFrame(dataset)
+
+            # handle nulls, duplicates, etc.
+            data = sanitize_data(data, -1, np.nan)
+
+            # extract samples features and target feature from dataframe
+            # analysis they aren't normally distributed
+            X = pd.DataFrame(data.drop(TARGET_CLASS, axis=1))
+            # we convert the target from categorical strings to labels 0 and 1
+            y = pd.DataFrame(encoder.fit_transform(data[TARGET_CLASS]))
+
+            columns = X.columns
+
+            # we normalize the features as they contain very large values and from EDA
+            if (normalizer != None):
+                if (SHOW_FEATURE_DESCRIPTIONS):
+                    log("\nBefore normalization:")
+                    log(X.describe())
+                X = pd.DataFrame(normalizer.fit_transform(X), columns=columns)
+                if (SHOW_FEATURE_DESCRIPTIONS):
+                    log("\nAfter normalization:")
+                    log(X.describe())
+
+            # DEPRECATED: PCA reduces the accuracies across the board
+            # try to do feature selection to improve performance/accuracy
+            # PCA doesn't depend on an estimator
+            # NOTE: if using PCA, you will lose the column headers
+            # if (feature_selector == 'PCA'):
+            #     log('\n')
+            #     log("Number of features before selection: {}".format(len(X.columns)))
+            #     log(list(X.columns))
+            #     X = pd.DataFrame(pca.fit_transform(X))
+            #     log('\n')
+            #     log("Number of features after selection: {}".format(len(X.columns)))
+            #     log(list(X.columns))
+
+            if (SHOW_METADATA):
+                print_metadata(data, summarize=True)
+
+            # split samples into training and test sets
+            # MIGHT NOT NEED THIS
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=.2, random_state=SEED)
+
+            # create validation folds
+            cross_validation = StratifiedKFold(
+                n_splits=CROSS_VALIDATION_FOLDS, random_state=SEED)
+
+            # see if we can reduce features
+            if (feature_selector != None):
                 old_columns = X_train.columns
-                classifier = RFE(classifier, n_features_to_select=RFE_COLUMNS)
-                print()
-                print("Number of features before selection: {}".format(
-                    len(X_train.columns)))
-                print(list(X_train.columns))
-                X_train = pd.DataFrame(classifier.fit_transform(
-                    X_train, y_train.values.ravel()))
-                print()
                 new_columns = []
-                for i, val in enumerate(classifier.support_):
-                    if (val == True):
-                        new_columns.append(old_columns[i])
-                print("Number of features after selection: {}".format(
+                log("\nNumber of features before selection: {}".format(
+                    len(old_columns)))
+                log(list(old_columns))
+                # some classifiers do not have the means to rank, so can't use RFE
+                if (feature_selector == 'RFE'):
+                    classifier = RFE(
+                        classifier, n_features_to_select=RFE_COLUMNS)
+                    X_train = pd.DataFrame(classifier.fit_transform(
+                        X_train, y_train.values.ravel()))
+                    for i, val in enumerate(classifier.support_):
+                        if (val == True):
+                            new_columns.append(old_columns[i])
+
+                elif (feature_selector == 'manual'):
+                    X_train = X_train.drop(
+                        FEATURE_SELECTION_DROP_COLUMNS, axis=1)
+                    new_columns = X_train.columns
+
+                log("\nNumber of features after selection: {}".format(
                     len(new_columns)))
-                print(new_columns)
+                log(new_columns)
 
             accuracies = []
             precisions = []
@@ -163,28 +210,24 @@ for dataset_label, filename in FILES.items():
                 recalls.append(recall_score(
                     fold_y_test, y_pred, average='binary'))
 
-                if (SHOW_ROC):
-                    probabilities = model.predict_proba(fold_X_test)
-                    fpr, tpr, thresholds = roc_curve(
-                        fold_y_test, probabilities[:, 1])
-                    tprs.append(interp(mean_fpr, fpr, tpr))
-                    tprs[-1][0] = 0.0
-                    roc_auc = auc(fpr, tpr)
-                    aucs.append(roc_auc)
-                    plt.plot()
-                    plt.plot(fpr, tpr, lw=1, alpha=0.3,
-                             label='ROC fold {} (AUC = {:0.2f})'.format(fold, roc_auc))
+                # for ROC
+                probabilities = model.predict_proba(fold_X_test)
+                fpr, tpr, thresholds = roc_curve(
+                    fold_y_test, probabilities[:, 1])
+                tprs.append(interp(mean_fpr, fpr, tpr))
+                tprs[-1][0] = 0.0
+                roc_auc = auc(fpr, tpr)
+                aucs.append(roc_auc)
 
             results = {
-                'accuracies': np.array(accuracies),
-                'precisions': np.array(precisions),
-                'recalls': np.array(recalls)
+                'accuracy': np.array(accuracies),
+                'precision': np.array(precisions),
+                'recall': np.array(recalls)
             }
 
             if (SHOW_CROSS_VALIDATION_RESULTS):
-                print(classifier_name)
                 feature_selector_name = feature_selector
-                if (feature_selector == 'RFE' or feature_selector == 'RFECF'):
+                if (feature_selector == 'RFE'):
                     feature_selector_name += str(RFE_COLUMNS)
                 file_name = "{}/{}-{}-{}.txt".format(
                     OUTPUT_DIR, dataset_label, classifier_name, feature_selector_name)
@@ -220,33 +263,39 @@ for dataset_label, filename in FILES.items():
                 plt.legend(loc="lower right")
                 plt.show()
 
-            classifier_results[classifier_name] = results
-            print()
+            classifier_results[label] = results
+            classifier_versions[feature_selector] = results
 
-    # compute statistical significance of differences in models
-    if (len(CLASSIFIERS) > 1):
-        print('Classifier evaluations')
-        model_pairs = list(combinations(CLASSIFIERS.keys(), 2))
-        model_triples = list(combinations(CLASSIFIERS.keys(), 3))
-
-        for a, b in model_pairs:
-            print("{} vs. {}".format(a, b))
-            a = classifier_results[a]['accuracies']
-            b = classifier_results[b]['accuracies']
-
+        log("Paired t-test comparison of feature selection methods")
+        for a, b in list(combinations(classifier_versions.keys(), 2)):
+            log("{} vs. {}".format(a, b))
+            a = classifier_versions[a][SCORING_METRIC]
+            b = classifier_versions[b][SCORING_METRIC]
             ttest = stats.ttest_rel(a, b)
-            wilcoxon = stats.wilcoxon(a, b)
-            print("Paired t-test: {}, pvalue = {}".format(ttest.statistic, ttest.pvalue))
-            print("Wilcoxons': {}, pvalue = {}".format(
-                wilcoxon.statistic, wilcoxon.pvalue))
-            print()
+            log("tvalue: {}, pvalue: {}".format(ttest.statistic, ttest.pvalue))
 
-        for a, b, c in model_triples:
-            print("{} vs. {} vs. {}".format(a, b, c))
-            a = classifier_results[a]['accuracies']
-            b = classifier_results[b]['accuracies']
-            c = classifier_results[c]['accuracies']
+        log('\n')
 
-            friedman = stats.friedmanchisquare(a, b, c)
-            print("Friedmans': {}".format(friedman.statistic, friedman.pvalue))
-            print()
+# compute statistical significance of differences in models
+if (len(classifier_results.keys()) > 1):
+    log('Classifier evaluations')
+    model_pairs = list(combinations(classifier_results.keys(), 2))
+    model_triples = list(combinations(classifier_results.keys(), 3))
+
+    for a, b in model_pairs:
+        log("{} vs. {}".format(a, b))
+        a = classifier_results[a][SCORING_METRIC]
+        b = classifier_results[b][SCORING_METRIC]
+
+        wilcoxon = stats.wilcoxon(a, b)
+        log("Wilcoxons': {}, pvalue = {}".format(
+            wilcoxon.statistic, wilcoxon.pvalue))
+        log('\n')
+
+    scores = list(
+        map(lambda x: classifier_results[x][SCORING_METRIC], classifier_results.keys()))
+    log(scores)
+    # friedman = stats.friedmanchisquare()
+    # log("Friedmans': {}".format(
+    #     friedman.statistic, friedman.pvalue))
+    # log('\n')

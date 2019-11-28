@@ -1,45 +1,49 @@
 import os
+import logging
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 
+logger = logging.getLogger(__name__)
+log = logger.info
+
 
 def sanitize_data(data, null_identifier=np.nan, null_replacement_value=None, remove_nulls=True):
-    print("Rows before sanitization: {}".format(data.shape[0]))
+    log("Rows before sanitization: {}".format(data.shape[0]))
     # need to handle that the dataset uses -1 as 'null'
     if (null_replacement_value != None):
-        print('Replacing {} with {}'.format(
+        log('Replacing {} with {}'.format(
             null_identifier, null_replacement_value))
         data = data.replace(null_identifier, null_replacement_value)
     if (remove_nulls):
         nulls_before = data.isna().sum().sum()
         data = data.dropna(axis=0)
         nulls_after = data.isna().sum().sum()
-        print("Removed {} nulls, {} left".format(
+        log("Removed {} nulls, {} left".format(
             nulls_before - nulls_after, nulls_after))
         data = data.reset_index(drop=True)
-    print("Rows after sanitization: {}".format(data.shape[0]))
+    log("Rows after sanitization: {}".format(data.shape[0]))
     return data
 
 
 def print_metadata(df, label='', summarize=True):
     """Prints the pandas dataframe information"""
-    print()
-    print(label)
+    log('\n')
+    log(label)
     if (summarize):
-        print(df.info())
+        log(df.info())
     else:
-        print('--- INFO ---')
-        print(df.info())
-        print()
-        print('--- DESCRIBE ---')
-        print(df.describe())
-        print()
-        print('--- HEAD ---')
-        print(df.head())
-        print()
+        log('--- INFO ---')
+        log(df.info())
+        log('\n')
+        log('--- DESCRIBE ---')
+        log(df.describe())
+        log('\n')
+        log('--- HEAD ---')
+        log(df.head())
+        log('\n')
 
 
 def print_eda(data, X, y, target_class, show_feature_distributions=True, show_plots_as_subplot=True, show_totals=True, show_correlations=True, show_box_plot=True):
@@ -91,22 +95,23 @@ def report_cluster(X_train, y_test, y_pred):
         if prediction[0] == y[i]:
             correct += 1
 
-    print(correct/len(X))
+    log(correct/len(X))
 
 
 def print_cross_validation_results(results, file_name='result.txt', print_to_file=False):
-    accuracies = results['accuracies']
-    precisions = results['precisions']
-    recalls = results['recalls']
+    accuracies = results['accuracy']
+    precisions = results['precision']
+    recalls = results['recall']
     table = [[fold_index + 1, accuracies[fold_index], precisions[fold_index], recalls[fold_index]]
              for fold_index in range(len(accuracies))]
 
     table.append(['avg', accuracies.mean(), precisions.mean(), recalls.mean()])
     table.append(['std', accuracies.std() * 2,
                   precisions.std() * 2, recalls.std() * 2])
-    sheet = tabulate(table, headers=['Fold', 'Accuracy', 'Precision', 'Recall'])
-    print(sheet)
+    sheet = tabulate(
+        table, headers=['Fold', 'Accuracy', 'Precision', 'Recall'])
+    log(sheet)
     if (print_to_file):
-        with open(file_name,'w+') as writer:
+        with open(file_name, 'w+') as writer:
             writer.write(sheet)
-    print()
+    log('\n')
