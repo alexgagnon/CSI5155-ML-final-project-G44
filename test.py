@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from itertools import combinations
+from Orange.evaluation import compute_CD, graph_ranks
 from scipy import interp, stats
 from scipy.io.arff import loadarff
 from sklearn.cluster import KMeans
@@ -12,7 +13,7 @@ from sklearn.decomposition import PCA
 from sklearn.feature_selection import RFE, RFECV
 # from sklearn.impute import SimpleImputer
 from sklearn.svm import SVC
-from sklearn.metrics import roc_curve, auc, accuracy_score, precision_score, recall_score
+from sklearn.metrics import roc_curve, auc, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split, StratifiedKFold
 # from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Normalizer, StandardScaler, RobustScaler, LabelEncoder, OneHotEncoder, LabelBinarizer
@@ -33,6 +34,7 @@ FILES = {
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
 RFE_COLUMNS = None
+COMPUTE_ROC = False
 SHOW_FEATURE_DESCRIPTIONS = False
 SHOW_METADATA = False
 SHOW_EDA = False
@@ -190,6 +192,7 @@ for dataset_label, filename in FILES.items():
             accuracies = []
             precisions = []
             recalls = []
+            f1s = []
             tprs = []
             aucs = []
             mean_fpr = np.linspace(0, 1, 100)
@@ -209,20 +212,23 @@ for dataset_label, filename in FILES.items():
                     fold_y_test, y_pred, average='binary'))
                 recalls.append(recall_score(
                     fold_y_test, y_pred, average='binary'))
+                f1s.append(f1_score(fold_y_test, y_pred))
 
                 # for ROC
-                probabilities = model.predict_proba(fold_X_test)
-                fpr, tpr, thresholds = roc_curve(
-                    fold_y_test, probabilities[:, 1])
-                tprs.append(interp(mean_fpr, fpr, tpr))
-                tprs[-1][0] = 0.0
-                roc_auc = auc(fpr, tpr)
-                aucs.append(roc_auc)
+                if (COMPUTE_ROC and 'svm' not in classifier_name):
+                    probabilities = model.predict_proba(fold_X_test)
+                    fpr, tpr, thresholds = roc_curve(
+                        fold_y_test, probabilities[:, 1])
+                    tprs.append(interp(mean_fpr, fpr, tpr))
+                    tprs[-1][0] = 0.0
+                    roc_auc = auc(fpr, tpr)
+                    aucs.append(roc_auc)
 
             results = {
                 'accuracy': np.array(accuracies),
                 'precision': np.array(precisions),
-                'recall': np.array(recalls)
+                'recall': np.array(recalls),
+                'f1': np.array(f1s)
             }
 
             if (SHOW_CROSS_VALIDATION_RESULTS):
@@ -292,9 +298,27 @@ if (len(classifier_results.keys()) > 1):
             wilcoxon.statistic, wilcoxon.pvalue))
         log('\n')
 
-    scores = list(
-        map(lambda x: classifier_results[x][SCORING_METRIC], classifier_results.keys()))
-    log(scores)
+    # for each classifier, compute the average of all the various datasets
+    algorithm_averages = {}
+    for classifier_name in CLASSIFIERS.keys():
+        results = []
+        for result_key in classifier_results.keys():
+            if classifier_name in result_key:
+                results.append(
+                    np.array(classifier_results[result_key][SCORING_METRIC]).mean())
+
+        algorithm_averages[classifier_name] = np.array(results).mean()
+
+    log(algorithm_averages)
+    # scores = list(
+    #     map(lambda x: classifier_results[x][SCORING_METRIC], classifier_results.keys()))
+
+    # mean_scores = list(map(lambda x: np.array(x), scores))
+    cd = compute_CD(algorithm_averages.values(),
+                    len(FILES) * len(feature_selectors))
+    graph_ranks(algorithm_averages.values(),
+                list(algorithm_averages.keys()), cd=cd, width=6, textspace=1.5)
+    plt.show()
     # friedman = stats.friedmanchisquare()
     # log("Friedmans': {}".format(
     #     friedman.statistic, friedman.pvalue))

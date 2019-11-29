@@ -67,7 +67,7 @@ def print_eda(data, X, y, target_class, show_feature_distributions=True, show_pl
 
     if (show_box_plot):
         X.plot(kind='box')
-        plt.show()
+        plt.show(block=False)
 
     # totals for classes
     if (show_totals):
@@ -102,14 +102,15 @@ def print_cross_validation_results(results, file_name='result.txt', print_to_fil
     accuracies = results['accuracy']
     precisions = results['precision']
     recalls = results['recall']
-    table = [[fold_index + 1, accuracies[fold_index], precisions[fold_index], recalls[fold_index]]
+    f1s = results['f1']
+    table = [[fold_index + 1, accuracies[fold_index], precisions[fold_index], recalls[fold_index], f1[fold_index]]
              for fold_index in range(len(accuracies))]
 
     table.append(['avg', accuracies.mean(), precisions.mean(), recalls.mean()])
     table.append(['std', accuracies.std() * 2,
                   precisions.std() * 2, recalls.std() * 2])
     sheet = tabulate(
-        table, headers=['Fold', 'Accuracy', 'Precision', 'Recall'])
+        table, headers=['Fold', 'Accuracy', 'Precision', 'Recall', 'F1'])
     log(sheet)
     if (print_to_file):
         with open(file_name, 'w+') as writer:
