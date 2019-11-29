@@ -103,7 +103,7 @@ def print_cross_validation_results(results, file_name='result.txt', print_to_fil
     precisions = results['precision']
     recalls = results['recall']
     f1s = results['f1']
-    table = [[fold_index + 1, accuracies[fold_index], precisions[fold_index], recalls[fold_index], f1[fold_index]]
+    table = [[fold_index + 1, accuracies[fold_index], precisions[fold_index], recalls[fold_index], f1s[fold_index]]
              for fold_index in range(len(accuracies))]
 
     table.append(['avg', accuracies.mean(), precisions.mean(), recalls.mean()])
