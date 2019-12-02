@@ -33,17 +33,17 @@ from skmultiflow.evaluation import EvaluatePrequential
 
 SEED = 42
 CLASSIFIERS = {
-    # 'ada-boost': AdaBoostClassifier(random_state=SEED),
+    'ada-boost': AdaBoostClassifier(random_state=SEED),
     # 'gaussian-process': GaussianProcessClassifier(max_iter_predict=10, random_state=SEED),
-    # 'gradient-boosting': GradientBoostingClassifier(random_state=SEED),
-    # 'knn': KNeighborsClassifier(),
-    # 'linear-SGD': SGDClassifier(random_state=SEED),
-    # 'naive-bayes': GaussianNB(),
-    # 'neural-network': MLPClassifier(random_state=SEED, alpha=1, max_iter=1000),
-    # 'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
-    # 'svm': SVC(random_state=SEED, gamma='scale'),
-    # 'tree': DecisionTreeClassifier(random_state=SEED),
-    'cn2': CN2Learner()
+    'gradient-boosting': GradientBoostingClassifier(random_state=SEED),
+    'knn': KNeighborsClassifier(),
+    'linear-SGD': SGDClassifier(random_state=SEED),
+    'naive-bayes': GaussianNB(),
+    'neural-network': MLPClassifier(random_state=SEED, alpha=1, max_iter=1000),
+    'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
+    'svm': SVC(random_state=SEED, gamma='scale'),
+    'tree': DecisionTreeClassifier(random_state=SEED),
+    # 'cn2': CN2Learner()
     # 'hoeffding': HoeffdingTree()
 }
 NO_RFE = ['knn', 'svm', 'gaussian-process', 'naive-bayes', 'neural-network']
