@@ -35,16 +35,16 @@ from skmultiflow.evaluation import EvaluatePrequential
 
 SEED = 42
 CLASSIFIERS = {
-    # 'ada-boost': AdaBoostClassifier(random_state=SEED),
+    'ada-boost': AdaBoostClassifier(random_state=SEED),
     # # 'gaussian-process': GaussianProcessClassifier(max_iter_predict=10, random_state=SEED),
-    # 'gradient-boosting': GradientBoostingClassifier(random_state=SEED),
-    # 'knn': KNeighborsClassifier(),
-    # 'linear-SGD': SGDClassifier(random_state=SEED),
-    # 'naive-bayes': GaussianNB(),
-    # 'neural-network': MLPClassifier(random_state=SEED, alpha=1, max_iter=1000),
-    # 'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
-    # 'svm': SVC(random_state=SEED, gamma='scale'),
-    # 'tree': DecisionTreeClassifier(random_state=SEED),
+    'gradient-boosting': GradientBoostingClassifier(random_state=SEED),
+    'knn': KNeighborsClassifier(),
+    'linear-SGD': SGDClassifier(random_state=SEED, loss='log'),
+    'naive-bayes': GaussianNB(),
+    'neural-network': MLPClassifier(random_state=SEED, alpha=1, max_iter=1000),
+    'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
+    'svm': SVC(random_state=SEED, gamma='scale'),
+    'tree': DecisionTreeClassifier(random_state=SEED),
     'cn2': DummyClassifier(),
     # 'cn2': # 'hoeffding': HoeffdingTree()
 }
@@ -54,8 +54,8 @@ CROSS_VALIDATION_FOLDS = 10
 FILES = {
     '15s': 'TimeBasedFeatures-Dataset-15s-VPN.arff',
     #  '60s': 'TimeBasedFeatures-Dataset-60s-VPN.arff',
-    # '120s': 'TimeBasedFeatures-Dataset-120s-VPN.arff'
-    # '30s': 'TimeBasedFeatures-Dataset-30s-VPN.arff',
+    '120s': 'TimeBasedFeatures-Dataset-120s-VPN.arff'
+    '30s': 'TimeBasedFeatures-Dataset-30s-VPN.arff',
     # dropped due to inconsistent features compared to the other datasets
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
@@ -64,7 +64,7 @@ COMPUTE_ROC = True
 SHOW_FEATURE_DESCRIPTIONS = True
 SHOW_METADATA = False
 SHOW_EDA = False
-SHOW_ROC = True
+SHOW_ROC = False
 PRINT_ROC = True
 SHOW_CROSS_VALIDATION_RESULTS = True
 PRINT_CROSS_VALIDATION_TO_FILE = True
@@ -176,10 +176,8 @@ for dataset_label, filename in FILES.items():
 
             # split samples into training and test sets
             # MIGHT NOT NEED THIS
-            # X_train, X_test, y_train, y_test = train_test_split(
-            #     X, y, test_size=.2, random_state=SEED)
-            X_train = X
-            y_train = y
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=.2, random_state=SEED)
 
             # create validation folds
             cross_validation = StratifiedKFold(
@@ -227,13 +225,13 @@ for dataset_label, filename in FILES.items():
                 fold_y_test = y_train.iloc[fold_test_indexes]
 
                 if (classifier_name == 'hoeffding'):
-                    stream = DataStream(X, y)
+                    stream = DataStream(X, y.values.ravel())
                     stream.prepare_for_use()
                     evaluator = EvaluatePrequential(
                         show_plot=False, pretrain_size=200, metrics=['accuracy'])
                     model = evaluator.evaluate(
                         stream=stream, model=classifier)[0]
-                    model.fit(fold_X_train, fold_y_train)
+                    model.fit(fold_X_train, fold_y_train.values.ravel())
 
                 # elif (classifier_name == 'cn2'):
                 #     model = CrossValidation(
@@ -241,7 +239,7 @@ for dataset_label, filename in FILES.items():
 
                 else:
                     model = classifier.fit(
-                        fold_X_train, fold_y_train)
+                        fold_X_train, fold_y_train.values.ravel())
                     y_pred = model.predict(fold_X_test)
 
                     accuracies.append(accuracy_score(fold_y_test, y_pred))
