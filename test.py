@@ -1,6 +1,7 @@
 import os
 import shutil
 import logging
+from pprint import pprint
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -53,10 +54,10 @@ NO_RFE = ['knn', 'svm', 'gaussian-process',
 CROSS_VALIDATION_FOLDS = 10
 FILES = {
     '15s': 'TimeBasedFeatures-Dataset-15s-VPN.arff',
-    #  '60s': 'TimeBasedFeatures-Dataset-60s-VPN.arff',
-    '120s': 'TimeBasedFeatures-Dataset-120s-VPN.arff'
-    '30s': 'TimeBasedFeatures-Dataset-30s-VPN.arff',
     # dropped due to inconsistent features compared to the other datasets
+    #  '60s': 'TimeBasedFeatures-Dataset-60s-VPN.arff',
+    '30s': 'TimeBasedFeatures-Dataset-30s-VPN.arff',
+    '120s': 'TimeBasedFeatures-Dataset-120s-VPN.arff',
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
 RFE_COLUMNS = None
@@ -65,19 +66,22 @@ SHOW_FEATURE_DESCRIPTIONS = True
 SHOW_METADATA = False
 SHOW_EDA = False
 SHOW_ROC = False
-PRINT_ROC = True
+PRINT_ROC = False
 SHOW_CROSS_VALIDATION_RESULTS = True
 PRINT_CROSS_VALIDATION_TO_FILE = True
 TARGET_CLASS = 'class1'
 OUTPUT_DIR = 'results'
-FEATURE_SELECTION_DROP_COLUMNS = [
+MANUAL_DROP_1 = [
     'min_idle', 'mean_idle', 'max_idle', 'std_idle']
+MANUAL_DROP_2 = [
+    'min_biat', 'max_biat', 'min_fiat', 'max_fiat', 'min_flowiat', 'max_flowiat', 'min_active', 'max_active', 'min_idle', 'max_idle'
+]
 SCORING_METRIC = 'accuracy'
 
 encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
 normalizer = Normalizer()  # {None, Normalizer, StandardScaler, RobustScaler}
 # {None, 'RFE', 'manual'} 'PCA' was found to LOWER the accuracies
-feature_selectors = [None, 'RFE', 'manual', 'PCA']
+feature_selectors = [None, 'RFE', 'manual1', 'manual2', 'PCA']
 pca = PCA(.95)
 
 try:
@@ -96,6 +100,7 @@ log = logger.info
 
 # store results for comparison
 classifier_results = {}
+algorithm_dataset_results = {}
 
 # get stats on initial data
 if (SHOW_EDA):
@@ -158,7 +163,6 @@ for dataset_label, filename in FILES.items():
                     log("\nAfter normalization:")
                     log(X.describe())
 
-            # DEPRECATED: PCA reduces the accuracies across the board
             # try to do feature selection to improve performance/accuracy
             # PCA doesn't depend on an estimator
             # NOTE: if using PCA, you will lose the column headers
@@ -200,9 +204,11 @@ for dataset_label, filename in FILES.items():
                         if (val == True):
                             new_columns.append(old_columns[i])
 
-                elif (feature_selector == 'manual'):
+                # if manual, drop the selected columns
+                elif ('manual' in feature_selector):
+                    features_to_drop = MANUAL_DROP_1 if feature_selector == 'manual1' else MANUAL_DROP_2
                     X_train = X_train.drop(
-                        FEATURE_SELECTION_DROP_COLUMNS, axis=1)
+                        features_to_drop, axis=1)
                     new_columns = X_train.columns
 
                 log("\nNumber of features after selection: {}".format(
@@ -305,6 +311,10 @@ for dataset_label, filename in FILES.items():
                 plt.savefig("results/roc.png")
 
             classifier_results[label] = results
+            if (feature_selector != 'RFE'):
+                if classifier_name not in algorithm_dataset_results:
+                    algorithm_dataset_results[classifier_name] = []
+                algorithm_dataset_results[classifier_name].append(results[SCORING_METRIC].mean())
             classifier_versions[feature_selector] = results
 
         log("Paired t-test comparison of feature selection methods")
@@ -316,6 +326,7 @@ for dataset_label, filename in FILES.items():
             log("tvalue: {}, pvalue: {}".format(ttest.statistic, ttest.pvalue))
 
         log('\n')
+
 
 # compute statistical significance of differences in models
 if (len(classifier_results.keys()) > 1):
@@ -334,10 +345,14 @@ if (len(classifier_results.keys()) > 1):
         log('\n')
 
     # for each classifier, compute the average of all the various datasets
+    # excet for RFE based ones since they aren't application to all
     algorithm_averages = {}
     for classifier_name in CLASSIFIERS.keys():
         results = []
         for result_key in classifier_results.keys():
+            if 'RFE' in result_key:
+                continue
+
             if classifier_name in result_key:
                 results.append(
                     np.array(classifier_results[result_key][SCORING_METRIC]).mean())
@@ -345,16 +360,17 @@ if (len(classifier_results.keys()) > 1):
         algorithm_averages[classifier_name] = np.array(results).mean()
 
     log(algorithm_averages)
-    # scores = list(
-    #     map(lambda x: classifier_results[x][SCORING_METRIC], classifier_results.keys()))
 
-    # mean_scores = list(map(lambda x: np.array(x), scores))
+    # compute Friedmans and CD for all except RFE, since we can't apply it
+    # to all of the algorithms
     cd = compute_CD(algorithm_averages.values(),
-                    len(FILES) * len(feature_selectors))
+                    len(FILES) * (len(feature_selectors) - 1))
     graph_ranks(algorithm_averages.values(),
                 list(algorithm_averages.keys()), cd=cd, width=6, textspace=1.5)
     plt.savefig('results/nemenyi.png')
-    # friedman = stats.friedmanchisquare()
-    # log("Friedmans': {}".format(
-    #     friedman.statistic, friedman.pvalue))
-    # log('\n')
+
+    log(pprint(algorithm_datasets_results))
+    friedman = stats.friedmanchisquare(algorithm_datasets_results.values())
+    log("Friedmans': {}, pvalue: {}".format(
+        friedman.statistic, friedman.pvalue))
+    log('\n')

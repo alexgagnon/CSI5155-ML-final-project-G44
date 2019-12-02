@@ -107,9 +107,10 @@ def print_cross_validation_results(results, file_name='result.txt', print_to_fil
     table = [[fold_index + 1, accuracies[fold_index], precisions[fold_index], recalls[fold_index], f1s[fold_index]]
              for fold_index in range(len(accuracies))]
 
-    table.append(['avg', accuracies.mean(), precisions.mean(), recalls.mean()])
+    table.append(['avg', accuracies.mean(), precisions.mean(),
+                  recalls.mean(), f1s.mean()])
     table.append(['std', accuracies.std() * 2,
-                  precisions.std() * 2, recalls.std() * 2])
+                  precisions.std() * 2, recalls.std() * 2, f1s.std() * 2])
     sheet = tabulate(
         table, headers=['Fold', 'Accuracy', 'Precision', 'Recall', 'F1'])
     log(sheet)
