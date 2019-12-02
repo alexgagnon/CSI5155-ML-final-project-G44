@@ -46,7 +46,7 @@ def print_metadata(df, label='', summarize=True):
         log('\n')
 
 
-def print_eda(data, X, y, target_class, show_feature_distributions=True, show_plots_as_subplot=True, show_totals=True, show_correlations=True, show_box_plot=True):
+def print_eda(data, X, y, target_class, show_feature_distributions=True, show_plots_as_subplot=True, show_totals=True, show_correlations=True, show_box_plot=True, base_filename=''):
     # NOTE: plt.show(block=False) is async, need at least one plt.show()
     # to pause execution so you can read the graph
 
@@ -58,31 +58,32 @@ def print_eda(data, X, y, target_class, show_feature_distributions=True, show_pl
             for i, ax in enumerate(a):
                 sns.distplot(X[X.columns[i - 1]], ax=ax)
             plt.tight_layout()
-            plt.show(block=False)
+            plt.savefig('results/' + base_filename +
+                        'feature-distribution.png')
         else:
             for i in X.columns:
                 plt.figure(figsize=(15, 5))
                 sns.distplot(X[i])
-                plt.show(block=False)
+                plt.savefig('results/' + base_filename +
+                            'feature-distribution.png')
 
     if (show_box_plot):
         X.plot(kind='box')
-        plt.show(block=False)
+        plt.savefig('results/' + base_filename + 'feature-boxplot.png')
 
     # totals for classes
     if (show_totals):
         cmap = sns.color_palette("Set2")
         sns.countplot(x=target_class, data=data, palette=cmap)
         plt.xticks(rotation=45)
-        plt.show(block=False)
+        plt.savefig('results/' + base_filename + 'totals.png')
 
     # correlation of features
     if (show_correlations):
         corr = data[data.columns[1:]].corr()
         plt.figure(figsize=(15, 8))
         sns.heatmap(corr, cmap=sns.color_palette("RdBu_r", 20))
-
-    plt.show()
+        plt.savefig('results/' + base_filename + 'feature-correlations.png')
 
 
 def report_cluster(X_train, y_test, y_pred):
@@ -95,7 +96,7 @@ def report_cluster(X_train, y_test, y_pred):
         if prediction[0] == y[i]:
             correct += 1
 
-    log(correct/len(X))
+    log(correct/len(X_train))
 
 
 def print_cross_validation_results(results, file_name='result.txt', print_to_file=False):

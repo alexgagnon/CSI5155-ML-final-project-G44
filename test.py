@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from itertools import combinations
-from Orange.evaluation import compute_CD, graph_ranks
+from Orange.evaluation import compute_CD, graph_ranks, Results, CrossValidation
+from Orange.data.pandas_compat import table_from_frame
+from Orange.classification import CN2Learner
 from scipy import interp, stats
 from scipy.io.arff import loadarff
 from sklearn.cluster import KMeans
@@ -18,12 +20,33 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 # from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Normalizer, StandardScaler, RobustScaler, LabelEncoder, OneHotEncoder, LabelBinarizer
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from skmultiflow.trees import HoeffdingTree
 from util import print_metadata, print_eda, sanitize_data, print_cross_validation_results
-from streamz.dataframe import DataFrame as StreamingDataFrame
-from sklearn.ensemble import VotingClassifier, RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import VotingClassifier, RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+from skmultiflow.trees import HoeffdingTree
+from skmultiflow.data import DataStream
+from skmultiflow.evaluation import EvaluatePrequential
 
+SEED = 42
+CLASSIFIERS = {
+    # 'ada-boost': AdaBoostClassifier(random_state=SEED),
+    # 'gaussian-process': GaussianProcessClassifier(max_iter_predict=10, random_state=SEED),
+    # 'gradient-boosting': GradientBoostingClassifier(random_state=SEED),
+    # 'knn': KNeighborsClassifier(),
+    # 'linear-SGD': SGDClassifier(random_state=SEED),
+    # 'naive-bayes': GaussianNB(),
+    # 'neural-network': MLPClassifier(random_state=SEED, alpha=1, max_iter=1000),
+    # 'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
+    # 'svm': SVC(random_state=SEED, gamma='scale'),
+    # 'tree': DecisionTreeClassifier(random_state=SEED),
+    'cn2': CN2Learner()
+    # 'hoeffding': HoeffdingTree()
+}
+NO_RFE = ['knn', 'svm', 'gaussian-process', 'naive-bayes', 'neural-network']
 CROSS_VALIDATION_FOLDS = 10
 FILES = {
     '15s': 'TimeBasedFeatures-Dataset-15s-VPN.arff',
@@ -34,28 +57,16 @@ FILES = {
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
 RFE_COLUMNS = None
-COMPUTE_ROC = False
-SHOW_FEATURE_DESCRIPTIONS = False
+COMPUTE_ROC = True
+SHOW_FEATURE_DESCRIPTIONS = True
 SHOW_METADATA = False
 SHOW_EDA = False
-SHOW_ROC = False
+SHOW_ROC = True
 PRINT_ROC = True
 SHOW_CROSS_VALIDATION_RESULTS = True
 PRINT_CROSS_VALIDATION_TO_FILE = True
-SEED = 42
 TARGET_CLASS = 'class1'
-CLASSIFIERS = {
-    'tree': DecisionTreeClassifier(random_state=SEED),
-    'knn': KNeighborsClassifier(),
-    'rf': RandomForestClassifier(n_estimators=10, random_state=SEED),
-    'gb': GradientBoostingClassifier(random_state=SEED),
-    'svm': SVC(random_state=SEED, gamma='scale')
-    # 'voting': VotingClassifier()
-    # 'kmeans': KMeans(),
-    # 'hoeffding': HoeffdingTree()
-}
 OUTPUT_DIR = 'results'
-NO_RFE = ['knn', 'svm']
 FEATURE_SELECTION_DROP_COLUMNS = [
     'min_idle', 'mean_idle', 'max_idle', 'std_idle']
 SCORING_METRIC = 'accuracy'
@@ -63,8 +74,8 @@ SCORING_METRIC = 'accuracy'
 encoder = LabelEncoder()  # {LabelEncoder, OneHotEncoder, LabelBinarizer}
 normalizer = Normalizer()  # {None, Normalizer, StandardScaler, RobustScaler}
 # {None, 'RFE', 'manual'} 'PCA' was found to LOWER the accuracies
-feature_selectors = [None, 'RFE', 'manual']
-# pca = PCA(.80)
+feature_selectors = [None, 'RFE', 'manual', 'PCA']
+pca = PCA(.95)
 
 try:
     shutil.rmtree(OUTPUT_DIR)
@@ -96,7 +107,12 @@ if (SHOW_EDA):
         X = pd.DataFrame(data.drop(TARGET_CLASS, axis=1))
         # we convert the target from categorical strings to labels 0 and 1
         y = pd.DataFrame(encoder.fit_transform(data[TARGET_CLASS]))
-        print_eda(data, X, y, TARGET_CLASS)
+        print_eda(data, X, y, TARGET_CLASS,
+                  base_filename=dataset_label + '-before-')
+
+        if (normalizer != None):
+            print_eda(data, pd.DataFrame(normalizer.fit_transform(X)), y, TARGET_CLASS,
+                      base_filename=dataset_label + '-after-')
 
 
 for dataset_label, filename in FILES.items():
@@ -112,6 +128,7 @@ for dataset_label, filename in FILES.items():
             label = "{}-{}-{}".format(dataset_label,
                                       classifier_name, feature_selector)
 
+            print(label)
             log(label)
             log('----------------------')
             dataset, meta = loadarff(FILE_PATH_DIR + filename)
@@ -142,14 +159,14 @@ for dataset_label, filename in FILES.items():
             # try to do feature selection to improve performance/accuracy
             # PCA doesn't depend on an estimator
             # NOTE: if using PCA, you will lose the column headers
-            # if (feature_selector == 'PCA'):
-            #     log('\n')
-            #     log("Number of features before selection: {}".format(len(X.columns)))
-            #     log(list(X.columns))
-            #     X = pd.DataFrame(pca.fit_transform(X))
-            #     log('\n')
-            #     log("Number of features after selection: {}".format(len(X.columns)))
-            #     log(list(X.columns))
+            if (feature_selector == 'PCA'):
+                log('\n')
+                log("Number of features before selection: {}".format(len(X.columns)))
+                log(list(X.columns))
+                X = pd.DataFrame(pca.fit_transform(X))
+                log('\n')
+                log("Number of features after selection: {}".format(len(X.columns)))
+                log(list(X.columns))
 
             if (SHOW_METADATA):
                 print_metadata(data, summarize=True)
@@ -164,7 +181,7 @@ for dataset_label, filename in FILES.items():
                 n_splits=CROSS_VALIDATION_FOLDS, random_state=SEED)
 
             # see if we can reduce features
-            if (feature_selector != None):
+            if (feature_selector != None and feature_selector != 'PCA'):
                 old_columns = X_train.columns
                 new_columns = []
                 log("\nNumber of features before selection: {}".format(
@@ -203,16 +220,32 @@ for dataset_label, filename in FILES.items():
                 fold_y_train = y_train.iloc[fold_train_indexes]
                 fold_X_test = X_train.iloc[fold_test_indexes]
                 fold_y_test = y_train.iloc[fold_test_indexes]
-                model = classifier.fit(
-                    fold_X_train, fold_y_train.values.ravel())
-                y_pred = model.predict(fold_X_test)
 
-                accuracies.append(accuracy_score(fold_y_test, y_pred))
-                precisions.append(precision_score(
-                    fold_y_test, y_pred, average='binary'))
-                recalls.append(recall_score(
-                    fold_y_test, y_pred, average='binary'))
-                f1s.append(f1_score(fold_y_test, y_pred))
+                if (classifier_name == 'hoeffding'):
+                    stream = DataStream(X, y)
+                    stream.prepare_for_use()
+                    evaluator = EvaluatePrequential(
+                        show_plot=False, pretrain_size=200, metrics=['accuracy'])
+                    model = evaluator.evaluate(
+                        stream=stream, model=classifier)[0]
+                    model.fit(fold_X_train, fold_y_train)
+
+                # elif (classifier_name == 'cn2'):
+                #     model = CN2Learner(table_from_frame(data))
+                #     for r in model.rules:
+                #         print(Orange.classification.rules.rule_to_string(r))
+
+                else:
+                    model = classifier.fit(
+                        fold_X_train, fold_y_train.values.ravel())
+                    y_pred = model.predict(fold_X_test)
+
+                    accuracies.append(accuracy_score(fold_y_test, y_pred))
+                    precisions.append(precision_score(
+                        fold_y_test, y_pred, average='binary'))
+                    recalls.append(recall_score(
+                        fold_y_test, y_pred, average='binary'))
+                    f1s.append(f1_score(fold_y_test, y_pred))
 
                 # for ROC
                 if (COMPUTE_ROC and 'svm' not in classifier_name):
@@ -267,7 +300,7 @@ for dataset_label, filename in FILES.items():
                 plt.ylabel('True Positive Rate')
                 plt.title('Receiver operating characteristic example')
                 plt.legend(loc="lower right")
-                plt.show()
+                plt.savefig("results/roc.png")
 
             classifier_results[label] = results
             classifier_versions[feature_selector] = results
@@ -318,7 +351,7 @@ if (len(classifier_results.keys()) > 1):
                     len(FILES) * len(feature_selectors))
     graph_ranks(algorithm_averages.values(),
                 list(algorithm_averages.keys()), cd=cd, width=6, textspace=1.5)
-    plt.show()
+    plt.savefig('results/nemenyi.png')
     # friedman = stats.friedmanchisquare()
     # log("Friedmans': {}".format(
     #     friedman.statistic, friedman.pvalue))
