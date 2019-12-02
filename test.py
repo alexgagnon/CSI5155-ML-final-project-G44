@@ -4,10 +4,11 @@ import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import wittgenstein as lw
 from itertools import combinations
 from Orange.evaluation import compute_CD, graph_ranks, Results, CrossValidation
 from Orange.data.pandas_compat import table_from_frame
-from Orange.classification import CN2Learner
+# from Orange.classification import CN2Learner
 from scipy import interp, stats
 from scipy.io.arff import loadarff
 from sklearn.cluster import KMeans
@@ -23,6 +24,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.dummy import DummyClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from util import print_metadata, print_eda, sanitize_data, print_cross_validation_results
 from sklearn.ensemble import VotingClassifier, RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
@@ -33,20 +35,21 @@ from skmultiflow.evaluation import EvaluatePrequential
 
 SEED = 42
 CLASSIFIERS = {
-    'ada-boost': AdaBoostClassifier(random_state=SEED),
-    # 'gaussian-process': GaussianProcessClassifier(max_iter_predict=10, random_state=SEED),
-    'gradient-boosting': GradientBoostingClassifier(random_state=SEED),
-    'knn': KNeighborsClassifier(),
-    'linear-SGD': SGDClassifier(random_state=SEED),
-    'naive-bayes': GaussianNB(),
-    'neural-network': MLPClassifier(random_state=SEED, alpha=1, max_iter=1000),
-    'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
-    'svm': SVC(random_state=SEED, gamma='scale'),
-    'tree': DecisionTreeClassifier(random_state=SEED),
-    # 'cn2': CN2Learner()
-    # 'hoeffding': HoeffdingTree()
+    # 'ada-boost': AdaBoostClassifier(random_state=SEED),
+    # # 'gaussian-process': GaussianProcessClassifier(max_iter_predict=10, random_state=SEED),
+    # 'gradient-boosting': GradientBoostingClassifier(random_state=SEED),
+    # 'knn': KNeighborsClassifier(),
+    # 'linear-SGD': SGDClassifier(random_state=SEED),
+    # 'naive-bayes': GaussianNB(),
+    # 'neural-network': MLPClassifier(random_state=SEED, alpha=1, max_iter=1000),
+    # 'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
+    # 'svm': SVC(random_state=SEED, gamma='scale'),
+    # 'tree': DecisionTreeClassifier(random_state=SEED),
+    'cn2': DummyClassifier(),
+    # 'cn2': # 'hoeffding': HoeffdingTree()
 }
-NO_RFE = ['knn', 'svm', 'gaussian-process', 'naive-bayes', 'neural-network']
+NO_RFE = ['knn', 'svm', 'gaussian-process',
+          'naive-bayes', 'neural-network', 'cn2']
 CROSS_VALIDATION_FOLDS = 10
 FILES = {
     '15s': 'TimeBasedFeatures-Dataset-15s-VPN.arff',
@@ -173,8 +176,10 @@ for dataset_label, filename in FILES.items():
 
             # split samples into training and test sets
             # MIGHT NOT NEED THIS
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=.2, random_state=SEED)
+            # X_train, X_test, y_train, y_test = train_test_split(
+            #     X, y, test_size=.2, random_state=SEED)
+            X_train = X
+            y_train = y
 
             # create validation folds
             cross_validation = StratifiedKFold(
@@ -231,13 +236,12 @@ for dataset_label, filename in FILES.items():
                     model.fit(fold_X_train, fold_y_train)
 
                 # elif (classifier_name == 'cn2'):
-                #     model = CN2Learner(table_from_frame(data))
-                #     for r in model.rules:
-                #         print(Orange.classification.rules.rule_to_string(r))
+                #     model = CrossValidation(
+                #         table_from_frame(data), [CN2Learner()], k=5)
 
                 else:
                     model = classifier.fit(
-                        fold_X_train, fold_y_train.values.ravel())
+                        fold_X_train, fold_y_train)
                     y_pred = model.predict(fold_X_test)
 
                     accuracies.append(accuracy_score(fold_y_test, y_pred))
