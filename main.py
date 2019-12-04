@@ -369,7 +369,9 @@ if (len(classifier_results.keys()) > 1):
     plt.savefig('results/nemenyi.png')
 
     log("Dataset results")
-    log(pprint(algorithm_dataset_results))
+    log(algorithm_dataset_results)
+    log('\n')
+
     friedman = stats.friedmanchisquare(*algorithm_dataset_results.values())
     log("Friedmans': {}, pvalue: {}".format(
         friedman.statistic, friedman.pvalue))
