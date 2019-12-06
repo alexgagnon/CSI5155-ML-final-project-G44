@@ -1,0 +1,682 @@
+
+%% bare_conf.tex
+%% V1.4
+%% 2012/12/27
+%% by Michael Shell
+%% See:
+%% http://www.michaelshell.org/
+%% for current contact information.
+%%
+%% This is a skeleton file demonstrating the use of IEEEtran.cls
+%% (requires IEEEtran.cls version 1.8 or later) with an IEEE conference paper.
+%%
+%% Support sites:
+%% http://www.michaelshell.org/tex/ieeetran/
+%% http://www.ctan.org/tex-archive/macros/latex/contrib/IEEEtran/
+%% and
+%% http://www.ieee.org/
+
+%%*************************************************************************
+%% Legal Notice:
+%% This code is offered as-is without any warranty either expressed or
+%% implied; without even the implied warranty of MERCHANTABILITY or
+%% FITNESS FOR A PARTICULAR PURPOSE!
+%% User assumes all risk.
+%% In no event shall IEEE or any contributor to this code be liable for
+%% any damages or losses, including, but not limited to, incidental,
+%% consequential, or any other damages, resulting from the use or misuse
+%% of any information contained here.
+%%
+%% All comments are the opinions of their respective authors and are not
+%% necessarily endorsed by the IEEE.
+%%
+%% This work is distributed under the LaTeX Project Public License (LPPL)
+%% ( http://www.latex-project.org/ ) version 1.3, and may be freely used,
+%% distributed and modified. A copy of the LPPL, version 1.3, is included
+%% in the base LaTeX documentation of all distributions of LaTeX released
+%% 2003/12/01 or later.
+%% Retain all contribution notices and credits.
+%% ** Modified files should be clearly indicated as such, including  **
+%% ** renaming them and changing author support contact information. **
+%%
+%% File list of work: IEEEtran.cls, IEEEtran_HOWTO.pdf, bare_adv.tex,
+%%                    bare_conf.tex, bare_jrnl.tex, bare_jrnl_compsoc.tex,
+%%                    bare_jrnl_transmag.tex
+%%*************************************************************************
+
+% *** Authors should verify (and, if needed, correct) their LaTeX system  ***
+% *** with the testflow diagnostic prior to trusting their LaTeX platform ***
+% *** with production work. IEEE's font choices can trigger bugs that do  ***
+% *** not appear when using other class files.                            ***
+% The testflow support page is at:
+% http://www.michaelshell.org/tex/testflow/
+
+
+
+% Note that the a4paper option is mainly intended so that authors in
+% countries using A4 can easily print to A4 and see how their papers will
+% look in print - the typesetting of the document will not typically be
+% affected with changes in paper size (but the bottom and side margins will).
+% Use the testflow package mentioned above to verify correct handling of
+% both paper sizes by the user's LaTeX system.
+%
+% Also note that the "draftcls" or "draftclsnofoot", not "draft", option
+% should be used if it is desired that the figures are to be displayed in
+% draft mode.
+%
+\documentclass[conference]{IEEEtran}
+% Add the compsoc option for Computer Society conferences.
+%
+% If IEEEtran.cls has not been installed into the LaTeX system files,
+% manually specify the path to it like:
+% \documentclass[conference]{../sty/IEEEtran}
+
+
+\usepackage{graphicx}
+
+
+% Some very useful LaTeX packages include:
+% (uncomment the ones you want to load)
+
+
+% *** MISC UTILITY PACKAGES ***
+%
+%\usepackage{ifpdf}
+% Heiko Oberdiek's ifpdf.sty is very useful if you need conditional
+% compilation based on whether the output is pdf or dvi.
+% usage:
+% \ifpdf
+%   % pdf code
+% \else
+%   % dvi code
+% \fi
+% The latest version of ifpdf.sty can be obtained from:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/
+% Also, note that IEEEtran.cls V1.7 and later provides a builtin
+% \ifCLASSINFOpdf conditional that works the same way.
+% When switching from latex to pdflatex and vice-versa, the compiler may
+% have to be run twice to clear warning/error messages.
+
+
+
+
+
+
+% *** CITATION PACKAGES ***
+%
+%\usepackage{cite}
+% cite.sty was written by Donald Arseneau
+% V1.6 and later of IEEEtran pre-defines the format of the cite.sty package
+% \cite{} output to follow that of IEEE. Loading the cite package will
+% result in citation numbers being automatically sorted and properly
+% "compressed/ranged". e.g., [1], [9], [2], [7], [5], [6] without using
+% cite.sty will become [1], [2], [5]--[7], [9] using cite.sty. cite.sty's
+% \cite will automatically add leading space, if needed. Use cite.sty's
+% noadjust option (cite.sty V3.8 and later) if you want to turn this off
+% such as if a citation ever needs to be enclosed in parenthesis.
+% cite.sty is already installed on most LaTeX systems. Be sure and use
+% version 4.0 (2003-05-27) and later if using hyperref.sty. cite.sty does
+% not currently provide for hyperlinked citations.
+% The latest version can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/cite/
+% The documentation is contained in the cite.sty file itself.
+
+
+
+
+
+
+% *** GRAPHICS RELATED PACKAGES ***
+%
+\ifCLASSINFOpdf
+  %\usepackage[pdftex]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
+  % will default to the driver specified in the system graphics.cfg if no
+  % driver is specified.
+  % \usepackage[dvips]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../eps/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.eps}
+\fi
+% graphicx was written by David Carlisle and Sebastian Rahtz. It is
+% required if you want graphics, photos, etc. graphicx.sty is already
+% installed on most LaTeX systems. The latest version and documentation
+% can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/graphics/
+% Another good source of documentation is "Using Imported Graphics in
+% LaTeX2e" by Keith Reckdahl which can be found at:
+% http://www.ctan.org/tex-archive/info/epslatex/
+%
+% latex, and pdflatex in dvi mode, support graphics in encapsulated
+% postscript (.eps) format. pdflatex in pdf mode supports graphics
+% in .pdf, .jpeg, .png and .mps (metapost) formats. Users should ensure
+% that all non-photo figures use a vector format (.eps, .pdf, .mps) and
+% not a bitmapped formats (.jpeg, .png). IEEE frowns on bitmapped formats
+% which can result in "jaggedy"/blurry rendering of lines and letters as
+% well as large increases in file sizes.
+%
+% You can find documentation about the pdfTeX application at:
+% http://www.tug.org/applications/pdftex
+
+
+
+
+
+% *** MATH PACKAGES ***
+%
+%\usepackage[cmex10]{amsmath}
+% A popular package from the American Mathematical Society that provides
+% many useful and powerful commands for dealing with mathematics. If using
+% it, be sure to load this package with the cmex10 option to ensure that
+% only type 1 fonts will utilized at all point sizes. Without this option,
+% it is possible that some math symbols, particularly those within
+% footnotes, will be rendered in bitmap form which will result in a
+% document that can not be IEEE Xplore compliant!
+%
+% Also, note that the amsmath package sets \interdisplaylinepenalty to 10000
+% thus preventing page breaks from occurring within multiline equations. Use:
+%\interdisplaylinepenalty=2500
+% after loading amsmath to restore such page breaks as IEEEtran.cls normally
+% does. amsmath.sty is already installed on most LaTeX systems. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/amslatex/math/
+
+
+
+
+
+% *** SPECIALIZED LIST PACKAGES ***
+%
+%\usepackage{algorithmic}
+% algorithmic.sty was written by Peter Williams and Rogerio Brito.
+% This package provides an algorithmic environment fo describing algorithms.
+% You can use the algorithmic environment in-text or within a figure
+% environment to provide for a floating algorithm. Do NOT use the algorithm
+% floating environment provided by algorithm.sty (by the same authors) or
+% algorithm2e.sty (by Christophe Fiorio) as IEEE does not use dedicated
+% algorithm float types and packages that provide these will not provide
+% correct IEEE style captions. The latest version and documentation of
+% algorithmic.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithms/
+% There is also a support site at:
+% http://algorithms.berlios.de/index.html
+% Also of interest may be the (relatively newer and more customizable)
+% algorithmicx.sty package by Szasz Janos:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithmicx/
+
+
+
+
+% *** ALIGNMENT PACKAGES ***
+%
+%\usepackage{array}
+% Frank Mittelbach's and David Carlisle's array.sty patches and improves
+% the standard LaTeX2e array and tabular environments to provide better
+% appearance and additional user controls. As the default LaTeX2e table
+% generation code is lacking to the point of almost being broken with
+% respect to the quality of the end results, all users are strongly
+% advised to use an enhanced (at the very least that provided by array.sty)
+% set of table tools. array.sty is already installed on most systems. The
+% latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/tools/
+
+
+% IEEEtran contains the IEEEeqnarray family of commands that can be used to
+% generate multiline equations as well as matrices, tables, etc., of high
+% quality.
+
+
+
+
+% *** SUBFIGURE PACKAGES ***
+%\ifCLASSOPTIONcompsoc
+%  \usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+%\else
+%  \usepackage[caption=false,font=footnotesize]{subfig}
+%\fi
+% subfig.sty, written by Steven Douglas Cochran, is the modern replacement
+% for subfigure.sty, the latter of which is no longer maintained and is
+% incompatible with some LaTeX packages including fixltx2e. However,
+% subfig.sty requires and automatically loads Axel Sommerfeldt's caption.sty
+% which will override IEEEtran.cls' handling of captions and this will result
+% in non-IEEE style figure/table captions. To prevent this problem, be sure
+% and invoke subfig.sty's "caption=false" package option (available since
+% subfig.sty version 1.3, 2005/06/28) as this is will preserve IEEEtran.cls
+% handling of captions.
+% Note that the Computer Society format requires a larger sans serif font
+% than the serif footnote size font used in traditional IEEE formatting
+% and thus the need to invoke different subfig.sty package options depending
+% on whether compsoc mode has been enabled.
+%
+% The latest version and documentation of subfig.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/subfig/
+
+
+
+
+% *** FLOAT PACKAGES ***
+%
+%\usepackage{fixltx2e}
+% fixltx2e, the successor to the earlier fix2col.sty, was written by
+% Frank Mittelbach and David Carlisle. This package corrects a few problems
+% in the LaTeX2e kernel, the most notable of which is that in current
+% LaTeX2e releases, the ordering of single and double column floats is not
+% guaranteed to be preserved. Thus, an unpatched LaTeX2e can allow a
+% single column figure to be placed prior to an earlier double column
+% figure. The latest version and documentation can be found at:
+% http://www.ctan.org/tex-archive/macros/latex/base/
+
+
+%\usepackage{stfloats}
+% stfloats.sty was written by Sigitas Tolusis. This package gives LaTeX2e
+% the ability to do double column floats at the bottom of the page as well
+% as the top. (e.g., "\begin{figure*}[!b]" is not normally possible in
+% LaTeX2e). It also provides a command:
+%\fnbelowfloat
+% to enable the placement of footnotes below bottom floats (the standard
+% LaTeX2e kernel puts them above bottom floats). This is an invasive package
+% which rewrites many portions of the LaTeX2e float routines. It may not work
+% with other packages that modify the LaTeX2e float routines. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/sttools/
+% Do not use the stfloats baselinefloat ability as IEEE does not allow
+% \baselineskip to stretch. Authors submitting work to the IEEE should note
+% that IEEE rarely uses double column equations and that authors should try
+% to avoid such use. Do not be tempted to use the cuted.sty or midfloat.sty
+% packages (also by Sigitas Tolusis) as IEEE does not format its papers in
+% such ways.
+% Do not attempt to use stfloats with fixltx2e as they are incompatible.
+% Instead, use Morten Hogholm'a dblfloatfix which combines the features
+% of both fixltx2e and stfloats:
+%
+% \usepackage{dblfloatfix}
+% The latest version can be found at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/dblfloatfix/
+
+
+
+
+% *** PDF, URL AND HYPERLINK PACKAGES ***
+%
+%\usepackage{url}
+% url.sty was written by Donald Arseneau. It provides better support for
+% handling and breaking URLs. url.sty is already installed on most LaTeX
+% systems. The latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/url/
+% Basically, \url{my_url_here}.
+
+
+
+
+% *** Do not adjust lengths that control margins, column widths, etc. ***
+% *** Do not use packages that alter fonts (such as pslatex).         ***
+% There should be no need to do such things with IEEEtran.cls V1.6 and later.
+% (Unless specifically asked to do so by the journal or conference you plan
+% to submit to, of course. )
+
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+% Do not put math or special symbols in the title.
+\title{Classification of VPN network traffic flow using time-related features}
+
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\author{\IEEEauthorblockN{Emmanuel Ayeleso}
+\IEEEauthorblockA{Faculty of Engineering \\Computer Science\\
+University of Ottawa\\
+Email: eayel037@uottawa.ca}
+\and
+\IEEEauthorblockN{Alex Gagnon}
+\IEEEauthorblockA{School of Computer Science\\
+Carleton University\\
+Email: asgagnon@hotmail.com}
+}
+
+% conference papers do not typically use \thanks and this command
+% is locked out in conference mode. If really needed, such as for
+% the acknowledgment of grants, issue a \IEEEoverridecommandlockouts
+% after \documentclass
+
+% for over three affiliations, or if they all won't fit within the width
+% of the page, use this alternative format:
+%
+%\author{\IEEEauthorblockN{Michael Shell\IEEEauthorrefmark{1},
+%Homer Simpson\IEEEauthorrefmark{2},
+%James Kirk\IEEEauthorrefmark{3},
+%Montgomery Scott\IEEEauthorrefmark{3} and
+%Eldon Tyrell\IEEEauthorrefmark{4}}
+%\IEEEauthorblockA{\IEEEauthorrefmark{1}School of Electrical and Computer Engineering\\
+%Georgia Institute of Technology,
+%Atlanta, Georgia 30332--0250\\ Email: see http://www.michaelshell.org/contact.html}
+%\IEEEauthorblockA{\IEEEauthorrefmark{2}Twentieth Century Fox, Springfield, USA\\
+%Email: homer@thesimpsons.com}
+%\IEEEauthorblockA{\IEEEauthorrefmark{3}Starfleet Academy, San Francisco, California 96678-2391\\
+%Telephone: (800) 555--1212, Fax: (888) 555--1212}
+%\IEEEauthorblockA{\IEEEauthorrefmark{4}Tyrell Inc., 123 Replicant Street, Los Angeles, California 90210--4321}}
+
+
+
+
+% use for special paper notices
+%\IEEEspecialpapernotice{(Invited Paper)}
+
+
+
+
+% make the title area
+\maketitle
+
+% As a general rule, do not put math, special symbols or citations
+% in the abstract
+\begin{abstract}
+
+We propose the use of machine learning algorithms to classify network traffic flow over the Internet using time-related features as a better approach to classify VPN internet traffic effectively.
+The Sklearn package for the Python language was used to train ten algorithms across datasets consisting of 15, 30, and 120 second time related features. Stratified cross validation and statistical analysis was used to create classification models for VPN versus non-VPN network traffic. Our approach was also focused on creating a re-usable code base to quickly and easily examine differences between Sklearn compliant classifiers. Our results suggest Random Forest as the best classifier. Random Forest records accuracy of 86\% with 15 seconds dataset as the best threshold.
+\end{abstract}
+
+% no keywords
+
+
+
+
+% For peer review papers, you can put extra information on the cover
+% page as needed:
+% \ifCLASSOPTIONpeerreview
+% \begin{center} \bfseries EDICS Category: 3-BBND \end{center}
+% \fi
+%
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+\IEEEpeerreviewmaketitle
+
+
+
+\section{Introduction}
+% no \IEEEPARstart
+VPN (Virtual Private Network) is a service that keeps activities over the internet private and secured. It works by routing traffic on the Internet through a VPN-tunnel that encrypts data and hides a user's IP address. Such VPN-tunnels make it difficult for ISP providers, hackers, man-in-the-middle listeners, governments, and other actors to snoop or view details of the the individuals network activities. This implies that VPN is an effective security and safety tool towards secured access to home, office, and public internet networks that is accessed through means such as Wi-Fi, Hotspots, cellular networks etc. However, VPN is seen as a threat by some that may want to monitor and censor the activities going over the Internet. For instance, some countries want to monitor activities of their citizens over the Internet, and tertiary institutions' authorities often times want to restrict students' activities over their network in order to shun certain forms of connectivity, such as streaming films.
+
+As a result, VPN is gradually becoming an enemy to these organizations who want to monitor and censor their members' activities on the Internet. These bodies have often resorted to banning VPN technologies entirely in their countries as means to curb its use. The problem is that such an outright ban infringes on the privacy and rights of the citizens and businesses that want to use VPN for genuinely valid and sensitive transactions that may require secure tunnels.
+
+We seek to identify the use of machine learning algorithms to classify network traffic flow over the internet using time-related features as a solution to this problem. This will result in several benefits. Firstly, machine learning algorithms can be trained to classify traffic over the internet as a VPN or non-VPN traffic based on the application being used. This would allow these restrictive organizations a means to permit certain essential services (e.g. banking), while still being able to censor undesirable traffic (e.g. streaming). Furthermore, these algorithms can be used for monitoring and censorship agenda of these regulatory authorities. Lastly, knowing the effectiveness of machine learning algorithms is useful to the end user, as they will understand that even though they may be able to encrypt the contents of their network activities, they can still be identified as users of VPN technologies, which could be hazardous to their freedoms or well-being.
+
+Our approach is without infringement on the direct privacy and security of the citizens and businesses. Considering the time factor, the scope of our work shall be limited to classification of the internet traffic as either VPN of non-VPN.
+
+We have focused on training ten classification models (Decision Tree, SVM, KNN, Gradient Boosting, AdaBooster, Random Forest, Naive Bayes, Dummy Rule Based, SGD, and Neural Networks) with the datasets created by Canadian Institute of Cybersecurity. In addition, we applied modern advancements in the field to the experiments which enhanced our results in comparison to the related existing research efforts. To the best of our knowledge, no existing related research work used up to ten algorithms in their experiment. We chose 10 algorithms in order to compare statistically, the performances of at least a model representing linear, tree-based, distance-based, rule-based and ensemble classifiers. Additionally, effort was placed in creating a code base that would allow for consistent testing of the algorithms in such a way as to allow easy modification of feature selection, feature engineering, normalization, and classifier selection.
+
+% You must have at least 2 lines in the paragraph with the drop letter
+% (should never be an issue)
+
+
+%\hfill mds
+
+\section{Description of the problem domain}
+Recently, the research community has shifted focus towards the use of machine learning techniques to classify internet traffic effectively \cite{b2,b3,b4,b6}. This is seen as a better approach to the diminished effectiveness of port-based and the computational overheads of the deep packet inspection that were the traditional approaches\cite{b6}. The concept of machine learning techniques basically relies on statistical patterns underlying the internet traffic. That is, using traffic features to train machine learning models for classification. Such features in our area of research are: distribution of flow duration, flow idle time, packet inter-arrival time, and packet lengths of various applications. These features have been asserted by the researchers as an effective yardstick to classify the internet traffic \cite{b3,b1,b7}.
+
+Two research works motivated our study \cite{b1,b7}.  Gerard et. al. studied the effectiveness of flow-based time-related features to detect VPN traffic. They used Weka to implement C4.5, decision-tree and KNN algorithms to classify their generated data sets using 10 folds cross validation. Sikha et. al also used the same data sets generated by Gerard et. al. study to train six different machine learning classifier models (logistic regression, SVM, Naive Bayes, kNN, Random Forest and Gradient Boosting Tree). They compare the performances of these models and recommended the best performing model for VPN and non-VPN traffic classification. As a contribution to the body of knowledge, we featured ten classifier models. Five of these classifiers ( SVM, Naive Bayes, kNN, Random Forest and Gradient Boosting Tree) were featured by Sikha et. al. and we added the additional five other classifiers (Decision Tree, AdaBooster, Dummy, SGD, and Neural Network).  Our interest was to study the performances of these models and possibly determine the best VPN and non-VPN traffic classifier.
+
+\section{Model Selection}
+We used ten models: Decision Tree, SVM, KNN, Gradient Boosting, Random Forest, Decision Tree, AdaBooster, Dummy, SGD, and Neural Network to train the datasets. Our choice of these models is informed by our understanding of the current body of knowledge in order to examine the performances of these models and see any insight that can be learned.
+
+\section{Experimental setup}
+We downloaded the datasets and converted them into Panda dataframe recognised by Sklearn. Thereafter, we used several Python packages (matlibplot, scipy, numpy, etc.) to perform eploratory data analysis through statistics and  visualization. Subsection A-E reported our observations and actions taken. For example, creating boxplots and histograms of the distributions of each feature, and a feature correlation heatmap were examined to determine where potential enhancements could be gleaned, such as removal of highly correlated data and choosing adequate normalization techniques.
+
+\subsection{Datasets}
+We used generated real-world traffic bench-marked intrusion detection datasets created by the Canadian Institute of Cybersecurity to train the ten  algorithms. The data sets have 24 attributes generated under the time frames: 15, 30, 60 and 120 seconds and the instances of 76,379, 14,670, 15,238 and 10,801 respectively. Our findings revealed that 60 seconds time frame dataset had differing attributes than the other three, and so was dropped as result of its incompatibility with others.
+\begin{table}[]
+\caption {Performance Accuracy and ranking of the Ten Classier against 15s, 30s and 120s deatasets using 10 folds cross validation}
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+Datasets          & \multicolumn{3}{l|}{\begin{tabular}[c]{@{}l@{}}Decision \\ Tree\end{tabular}} & \multicolumn{3}{l|}{SVM}             & \multicolumn{3}{l|}{KNN}             & \multicolumn{3}{l|}{\begin{tabular}[c]{@{}l@{}}Gradient \\ Boosting\end{tabular}} & \multicolumn{3}{l|}{AdaBooster} & \begin{tabular}[c]{@{}l@{}}Random \\ Forest\end{tabular} & \begin{tabular}[c]{@{}l@{}}Naive \\ Bayes\end{tabular} & Dummy           & SGD        & \begin{tabular}[c]{@{}l@{}}Neural \\ Network\end{tabular} \\ \hline
+15s Original      & \multicolumn{3}{l|}{0.8134(2)}                                                & \multicolumn{3}{l|}{0.6670(6)}       & \multicolumn{3}{l|}{0.7502(4)}       & \multicolumn{3}{l|}{0.7787(3)}                                                    & \multicolumn{3}{l|}{0.7243(5)}  & 0.8485(1)                                                & 0.5819(9)                                              & 0.5180(10)    & 0.6221(7)  & 0.6062(8)                                                 \\ \hline
+15s HCFFD1        & \multicolumn{3}{l|}{0.8270(2)}                                                & \multicolumn{3}{l|}{0.6376(6)}       & \multicolumn{3}{l|}{0.7375(4)}       & \multicolumn{3}{l|}{0.7678(3)}                                                    & \multicolumn{3}{l|}{0.7111(5)}  & 0.8633(1)                                                & 0.5812(9)                                              & 0.5100(10)    & 0.6054(7)  & 0.5805(8)                                                 \\ \hline
+15s HCFFD2        & \multicolumn{3}{l|}{0.8101(2)}                                                & \multicolumn{3}{l|}{0.6464(6)}       & \multicolumn{3}{l|}{0.7495(3)}       & \multicolumn{3}{l|}{0.7451(4)}                                                    & \multicolumn{3}{l|}{0.7065(5)}  & 0.846(1)                                                 & 0.5833(8)                                              & 0.513(10)     & 0.6182(7)  & 0.5795(9)                                                 \\ \hline
+15s PCA           & \multicolumn{3}{l|}{0.6908(3)}                                                & \multicolumn{3}{l|}{0.6580(6)}       & \multicolumn{3}{l|}{0.7334(1)}       & \multicolumn{3}{l|}{0.6802(4)}                                                    & \multicolumn{3}{l|}{0.6617(5)}  & 0.7088(2)                                                & 0.6101(7)                                              & 0.5150(10)    & 0.5736(9)  & 0.5789(8)                                                 \\ \hline
+30s Original      & \multicolumn{3}{l|}{0.832(2)}                                                 & \multicolumn{3}{l|}{0.6329(6)}       & \multicolumn{3}{l|}{0.7557(4)}       & \multicolumn{3}{l|}{0.7870(3)}                                                    & \multicolumn{3}{l|}{0.7395(5)}  & 0.8563(1)                                                & 0.6297(7)                                              & 0.5046(10)    & 0.5970(9)  & 0.6181(8)                                                 \\ \hline
+30s HCFFD1        & \multicolumn{3}{l|}{0.8305(2)}                                                & \multicolumn{3}{l|}{0.6297(7)}       & \multicolumn{3}{l|}{0.7545(4)}       & \multicolumn{3}{l|}{0.7806(3)}                                                    & \multicolumn{3}{l|}{0.7337(5)}  & 0.8531(1)                                                & 0.6323(6)                                              & 0.5038(10)    & 0.5949(9)  & 0.6174(8)                                                 \\ \hline
+30s HCFFD2        & \multicolumn{3}{l|}{0.8126(2)}                                                & \multicolumn{3}{l|}{0.6210(6)}       & \multicolumn{3}{l|}{0.7627(4)}       & \multicolumn{3}{l|}{0.7707(3)}                                                    & \multicolumn{3}{l|}{0.6869(5)}  & 0.8337(1)                                                & 0.5830(9)                                              & 0.5164(10)    & 0.5916(8)  & 0.6194(7)                                                 \\ \hline
+30s PCA           & \multicolumn{3}{l|}{0.7243(3)}                                                & \multicolumn{3}{l|}{0.6617(6)}       & \multicolumn{3}{l|}{0.7509(1)}       & \multicolumn{3}{l|}{0.7076(4)}                                                    & \multicolumn{3}{l|}{0.6675(5)}  & 0.7481(2)                                                & 0.6166(7)                                              & 0.5164(10)    & 0.6012(9)  & 0.6120(8)                                                 \\ \hline
+120 Original      & \multicolumn{3}{l|}{0.7899(2)}                                                & \multicolumn{3}{l|}{0.6634(6)}       & \multicolumn{3}{l|}{0.7744(4)}       & \multicolumn{3}{l|}{0.7790(3)}                                                    & \multicolumn{3}{l|}{0.7170(5)}  & 0.8263(1)                                                & 0.4693(10)                                             & 0.4856(9)     & 0.5975(8)  & 0.5980(7)                                                 \\ \hline
+120 HCFFD1        & \multicolumn{3}{l|}{0.7926(2)}                                                & \multicolumn{3}{l|}{0.6603(6)}       & \multicolumn{3}{l|}{0.7720(3)}       & \multicolumn{3}{l|}{0.7647(4)}                                                    & \multicolumn{3}{l|}{0.7121(5)}  & 0.8080(1)                                                & 0.4628(10)                                             & 0.5137(9)     & 0.5997(7)  & 0.5985(8)                                                 \\ \hline
+120 HCFFD2        & \multicolumn{3}{l|}{0.7812(2)}                                                & \multicolumn{3}{l|}{0.6615(6)}       & \multicolumn{3}{l|}{0.7747(3)}       & \multicolumn{3}{l|}{0.7545(4)}                                                    & \multicolumn{3}{l|}{0.6954(5)}  & 0.7860(1)                                                & 0.4582(10)                                             & 0.5086(9)     & 0.6080(7)  & 0.5910(8)                                                 \\ \hline
+120 PCA           & \multicolumn{3}{l|}{0.7533(4)}                                                & \multicolumn{3}{l|}{0.6620(6)}       & \multicolumn{3}{l|}{0.77030(2)}      & \multicolumn{3}{l|}{0.8045(1)}                                                    & \multicolumn{3}{l|}{0.6840(5)}  & 0.7671(3)                                                & 0.5978(7)                                              & 0.4921(10)    & 0.5903(9)  & 0.5934(8)                                                 \\ \hline
+\textbf{Avg Rank} & \multicolumn{3}{l|}{\textbf{2.3333}}                                          & \multicolumn{3}{l|}{\textbf{6.0833}} & \multicolumn{3}{l|}{\textbf{3.0833}} & \multicolumn{3}{l|}{\textbf{3.25}}                                                & \multicolumn{3}{l|}{\textbf{5}} & \textbf{1.3333}                                          & \textbf{8.25}                                          & \textbf{9.75} & \textbf{8} & \textbf{7.9167}                                           \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Data Cleansing}
+We performed Exploratory Data Analysis (EDA) and discovered several notable findings. First, a default value of "-1" denoted missing values. We considered simply imputing values as replacements, however we felt that even after deleting every row (instance) that contained any missing value, we were left with enough samples to use in classifier training. Table II displays the summary of the deleted instances before and after the data cleansing across the datasets.\\[12pt]\\[12pt]\\[12pt]\\[12pt] \\[12pt]\\[12pt] \\[12pt] \\[12pt] \\[12pt]
+
+
+\subsection{Feature Selection}
+We explored the results of the three datasets in our experiment. We believe that our actions will give room for the comparison of the chosen algorithms' performance against multiple datasets beyond the original dataset downloaded. Feature selection actions that we carried out on the datasets were:
+\begin{enumerate}
+  \item Original Dataset:These are the downloaded datasets from the Canadian Institute of Cybersecurity without any feature selection.
+  \item Highly Correlation Feature Elimination Dataset (HCFFD1): During the EDA, we plotted the features correlation of the datasets with Pandas .corr() method. We believed that the highly correlated features may not be contributing significantly to the performance of the algorithms, and would be especially detrimental to models that use probabilities based on Bayes equation, such as the Naive Bayes classifier (which assumes mutual exclusion). For example, features that represent 'active' and 'idle' are in fact inverses, as whenever a connection is active, it cannot also be idle, and vice versa.
+  \item Highly Correlation Feature Elimination Dataset (HCFFD2): Purposely, we created variations of HCFFD1 datasets and labeled them with postfix HCFFD2. As many models require large amounts of computation (i.e. for generating hyper-parameter optimizations, computing and updating weights in deep learning networks, etc.,) we would like to remove features that don't contribute significantly in order to speed up training time. In this case, introspection of the features during EDA indicated that the min and max feature variations were highly non-normal, and would likely create skew.
+  \item Principal Component Analysis (PCA): We performed dimentionality reduction on the datasets with Pandas method PCA.fit\_transform. Principal Component Analysis is the process of converting correlated variables into a smaller set of unrelated ones. In the same order of the HCFFD datasets, the goal is to reduce dimensionality, in the hopes of speeding up training time and possible raising (or at least not lowering by a significant degree) the overall performance of the classifier.
+  \item RFE - many classifiers enable ranking analysis of features in order to remove those that reduce performance or do not contribute significantly. Although it would be possible to create algorithms to compute rankings for those that do have have a native implementation (i.e. KNN, SVM), we did not have time to investigate such a solution. As this method of feature selection can be computationally expensive, and as one of our goals was to create a standardized way to evaluate various algorithms, this method was used only as additional insight and not used in further statistical analysis.
+\end{enumerate}
+
+Each classifier therefore had performance metrics for each version of feature selection: none, PCA, two manual selections, and possibly RFE. Pairwise t-tests where used to examine if the results between the feature selection method were statistically significant. Interestingly, for most of the classifiers, the 'none' version (that is, no feature selection was done), proved to be the highest performing. This would be condusive to the original findings of the datasets creators.
+
+In totality, we came up with four different datasets from each category of time-based datasets (15s, 30s and 120s). Such that 15s datasets produced 15s Original, 15s HCFFD1, 15s HCFFD2 and 15s PCA, and similarly for the 30s and 120s datasets. At the end of the feature selection excercise, a total of 12 different datasets were generated that we eventually used for training in the course of our experiments. This had the added benefit of allowing us to test significance of the algorithms' performances using the Friedman's Test.
+
+\begin{table}[h]
+\caption {Summary of the datasets instances before and after deletion of the missing fields}
+\begin{tabular}{|l|l|l|ll}
+\cline{1-3}
+Datasets    & Instances before deletion & Instances after  deletion&  &  \\ \cline{1-3}
+15 Second   & 18758                                      & 7095                                           &  &  \\ \cline{1-3}
+60 Seconds  & 15515                                      & 7131                                           &  &  \\ \cline{1-3}
+120 Seconds & 10782                                      & 5159                                           &  &  \\ \cline{1-3}
+\end{tabular}
+\label{fig:datasetcleasing}
+\end{table}
+\subsection{Normalization}
+In the features of all of the datasets we observed non-normal distributions of values, which could lead to incorrect statistical inference and invalid performance results in certain classifiers (i.e. the presence of large numeric values dominate in situations where distances are used in classification, such as with KNearestNeighbours). We therefore normalized the dataset using Pandas dataframe function called normalizer.fit\_transform. The actual normalizer used in reporting these results is the Normalizer class offered by sklearn, however in the spirit of creating code that is re-useable and modular, the code-base allows for easily swapping in other sklearn normalization/scaling types such as with a StandardScaler or RobustScaler. The Normalizer normalizes data around the unit norm (1). While better than extremely large differences, the unit norm may still pose challenges to distance-based learners due to the squaring of values.
+
+\subsection{Models' Training}
+We implemented the training of the ten (10) algorithms in sklearn. In order  better measure the true performance of the classifier to the general population, a test-train split method was used to divide the samples into a set used to train the learner, and another set on which to test the classifier against. For each classifier against each datasets, the samples were tested using ten folds cross validation. We used stratification in order to subject the algorithms to the same sample set in each fold, in order to give more reproducable and comparable results. Table 1 presents the average accuracy of the models and their individual performance ranking of each fold. In each fold, the accuracy, precision, recall, and f1 measure were computed. Since the classes were very well balanced, the choice of accuracy as the scoring metric was deemed appropriate, but again in ensuring the code-base is highly modular, choosing any of these metrics is a very simple task.
+
+
+
+
+% An example of a floating figure using the graphicx package.
+% Note that \label must occur AFTER (or within) \caption.
+% For figures, \caption should occur after the \includegraphics.
+% Note that IEEEtran v1.7 and later has special internal code that
+% is designed to preserve the operation of \label within \caption
+% even when the captionsoff option is in effect. However, because
+% of issues like this, it may be the safest practice to put all your
+% \label just after \caption rather than within \caption{}.
+%
+% Reminder: the "draftcls" or "draftclsnofoot", not "draft", class
+% option should be used if it is desired that the figures are to be
+% displayed while in draft mode.
+%
+%\begin{figure}[!t]
+%\centering
+%\includegraphics[width=2.5in]{myfigure}
+% where an .eps filename suffix will be assumed under latex,
+% and a .pdf suffix will be assumed for pdflatex; or what has been declared
+% via \DeclareGraphicsExtensions.
+%\caption{Simulation Results.}
+%\label{fig_sim}
+%\end{figure}
+
+% Note that IEEE typically puts floats only at the top, even when this
+% results in a large percentage of a column being occupied by floats.
+
+
+% An example of a double column floating figure using two subfigures.
+% (The subfig.sty package must be loaded for this to work.)
+% The subfigure \label commands are set within each subfloat command,
+% and the \label for the overall figure must come after \caption.
+% \hfil is used as a separator to get equal spacing.
+% Watch out that the combined width of all the subfigures on a
+% line do not exceed the text width or a line break will occur.
+%
+%\begin{figure*}[!t]
+%\centering
+%\subfloat[Case I]{\includegraphics[width=2.5in]{box}%
+%\label{fig_first_case}}
+%\hfil
+%\subfloat[Case II]{\includegraphics[width=2.5in]{box}%
+%\label{fig_second_case}}
+%\caption{Simulation results.}
+%\label{fig_sim}
+%\end{figure*}
+%
+% Note that often IEEE papers with subfigures do not employ subfigure
+% captions (using the optional argument to \subfloat[]), but instead will
+% reference/describe all of them (a), (b), etc., within the main caption.
+
+
+% An example of a floating table. Note that, for IEEE style tables, the
+% \caption command should come BEFORE the table. Table text will default to
+% \footnotesize as IEEE normally uses this smaller font for tables.
+% The \label must come after \caption as always.
+%
+%\begin{table}[!t]
+%% increase table row spacing, adjust to taste
+%\renewcommand{\arraystretch}{1.3}
+% if using array.sty, it might be a good idea to tweak the value of
+% \extrarowheight as needed to properly center the text within the cells
+%\caption{An Example of a Table}
+%\label{table_example}
+%\centering
+%% Some packages, such as MDW tools, offer better commands for making tables
+%% than the plain LaTeX2e tabular which is used here.
+%\begin{tabular}{|c||c|}
+%\hline
+%One & Two\\
+%\hline
+%Three & Four\\
+%\hline
+%\end{tabular}
+%\end{table}
+
+
+% Note that IEEE does not put floats in the very first column - or typically
+% anywhere on the first page for that matter. Also, in-text middle ("here")
+% positioning is not used. Most IEEE journals/conferences use top floats
+% exclusively. Note that, LaTeX2e, unlike IEEE journals/conferences, places
+% footnotes above bottom floats. This can be corrected via the \fnbelowfloat
+% command of the stfloats package.
+
+
+\section{Evaluation criteria}
+
+Beyond simply visually assessing the performance results of the models from Table 1, we performed Friedman's test to know if the average rankings of the the algorithm display statistically significant differences. The null hypothesis states that all algorithms are equivalent (and so their ranks should be equal). The Friedman's statistic computed by our results is 100.98, with  pvalue: 9.96e-18, at k=10, n=12, and alpha=0.05. Since this pvalue is lower than the value required for a confidence level of 95\%, we will reject the null hypothesis that all algorithms perform equally. We then used Nemenyi's test to perform a post-hoc test. Nemenyi's test, displayed in Fig. 1, calculated the critical difference (CD) against which the difference in the average rank between the algorithms are compared.
+
+
+
+\begin{figure}[]
+ \centerline{\includegraphics[width=4in]{Nemenyi.png}}
+%\DeclareGraphicsExtensions{.png}
+\caption{Nemenyi Diadram showing the critical differences in the Performance of the algorithms against the datasets}
+\end{figure}
+
+\section{Discussion of Results}
+Table 1 shows the the average accuracy of the models in order of the highest to the lowest accuracy as: Random Forest, Decision Tree, KNN, Gradient Boosting, Ada-boost, SVM, Nueral-Networ, Linear-SGD, Naive Bayes, and Dummy. Friedman's test assert statistical significance in the performance of the algorithms. Fig. 1 visually presents the comparison of the classifiers. It reveals that Random Forest, followed by Decision tree significantly outperformed other  classifiers. Random Forest classified 15s HCFFD1 dataset best with the overall mean accuracy of 86.33\%, better than all other classifiers against eleven remaining datasets. The only exceptions are for the 15s PCA and 30s PCA KNN. It is interesting that for this domain, decision trees dominated above even other known well-performing ensemble learners such as AdaBoost and Gradient Boosting. This could be due to the lack of hyper-parameter tuning that is often required for these types of classifiers.
+
+Our results suggest direct relationships between flow-timeout value and performance of the classifiers with 15 seconds as the best threshold. This could potentially be due to the extra encryption involved in VPN-tunneling. The 15 seconds threshold corroborate the findings of Arash et. al. (2016). Similarly, while the results of Sikha et. al (2017) suggest that Gradient boosting and Random Forest are the best classifiers of traffic flow-timeout, our results suggest the following order: Random Forest, Decision Tree, KNN and Gradient Boosting. It should be noted that Sikha et. al (2017) never considered Decision Tree in their experiment and that must have been the reason for its exclusion in their report. Our result also slightly contradicts the ordering of the performances of the classifiers as reported by Sikha et. al (2017). Our results show that KNN performs better that Gradient boosting as against the report of Sikha et. al (2017). Future work should include analysis of more classifiers such as those from different domains (e.g. deep learning, online learning), and inclusion of additional optimizations such as using GridSearch for hyper-parameter tuning.
+
+
+\section{Conclusion}
+
+We trained ten algorithms with network traffic flow time related features to classify network as VPN and non-VPN. The datasets used consisted of 15, 30, and 120 second time-based features. With feature selection experimentation, we created a total of twelve datasets that were used to train the algorithms. Models produced in our experiments exhibit good predictive performance with Random Forest as the best with accuracy of 86\%. Our recommendation for future work will be use of more datasets instances to train the models used in this experiment. The outcomes of such experiments may give higher accuracy. Furthermore, algorithms used in this experiment could also be trained to classify network traffic according to the application that generated it (e.g. browsing, skype, streaming, etc.,) such that it will be possible to classify a network traffic based either VPN or not and the application that generated it.
+
+
+
+
+% use section* for acknowledgement
+\section*{Acknowledgment}
+
+
+We will like to thank the Canadian Institute of Cybersecurity for granting us free access to the datasets used during the course of our experiments.
+
+
+
+
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+
+% can use a bibliography generated by BibTeX as a .bbl file
+% BibTeX documentation can be easily obtained at:
+% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
+% The IEEEtran BibTeX style support page is at:
+% http://www.michaelshell.org/tex/ieeetran/bibtex/
+%\bibliographystyle{IEEEtran}
+% argument is your BibTeX string definitions and bibliography database(s)
+%\bibliography{IEEEabrv,../bib/paper}
+%
+% <OR> manually copy in the resultant .bbl file
+% set second argument of \begin to the number of references
+% (used to reserve space for the reference number labels box)
+\begin{thebibliography}{00}
+
+\bibitem{b1}
+Bagui, Sikha & Fang, Xingang & Kalaimannan, Ezhil & Bagui, Subhash & Sheehan, Joseph. (2017). Comparison of machine-learning algorithms for classification of VPN network traffic flow using time-related features. Journal of Cyber Security Technology. 1-19. 10.1080/23742917.2017.1321891.
+
+\bibitem{b2}
+M. Shafiq, Xiangzhan Yu, A. A. Laghari, Lu Yao, N. K. Karn and F. Abdessamia, "Network Traffic Classification techniques and comparative analysis using Machine Learning algorithms," 2016 2nd IEEE International Conference on Computer and Communications (ICCC), Chengdu, 2016, pp. 2451-2455.
+
+\bibitem{b3}
+T. T. T. Nguyen and G. Armitage, "A survey of techniques for internet traffic classification using machine learning," in IEEE Communications Surveys & Tutorials, vol. 10, no. 4, pp. 56-76, Fourth Quarter 2008.
+
+\bibitem{b4}
+Kim, Hyun-chul & Fomenkov, Marina & Claffy, Kc & Brownlee, Nevil & Barman, Dhiman & Faloutsos, Michalis. (2009). Comparison of Internet Traffic Classification Tools.
+
+\bibitem{b5}
+Manuel  Crotti,  Maurizio  Dusi,  Francesco  Gringoli,  andLuca  Salgarelli.Traffic  classification  through  simple statistical  fingerprinting.SIGCOMM Comput. Commun.Rev., 37(1):5–16, January 2007
+
+\bibitem{b6}
+Jeffrey   Erman,   Anirban   Mahanti,   Martin   Arlitt,   IraCohen,  and  Carey  Williamson.Offline/realtime  traffic classification  using  semi-supervised  learning.Perform.Eval., 64(9-12):1194–1213, October 2007.
+
+\bibitem{b7}
+Habibi Lashkari, Arash & Draper Gil, Gerard & Mamun, Mohammad & Ghorbani, Ali. (2016). Characterization of Encrypted and VPN Traffic Using Time-Related Features. 10.5220/0005740704070414.
+
+\bibitem{b8}
+G. Hulten, L. Spencer, and P. Domingos. Mining time-changing data streams. In KDD’01, pages 97–106, San Francisco, CA, 2001. ACM Press.
+
+\bibitem{b9}
+G. Hulten, L. Spencer, and P. Domingos. Mining time-changing data streams. In KDD, pages 97–106, San Francisco, CA, 2001. ACM Press.
+
+
+
+\end{thebibliography}
+
+
+
+
+% that's all folks
+\end{document}
+
+
