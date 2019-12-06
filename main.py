@@ -45,7 +45,7 @@ CLASSIFIERS = {
     'random-forest': RandomForestClassifier(n_estimators=10, random_state=SEED),
     'svm': SVC(random_state=SEED, gamma='scale'),
     'tree': DecisionTreeClassifier(random_state=SEED),
-    'cn2': DummyClassifier(),
+    'dummy-rule': DummyClassifier(),
     # 'cn2': # 'hoeffding': HoeffdingTree()
 }
 NO_RFE = ['knn', 'svm',
@@ -60,8 +60,8 @@ FILE_PATH_DIR = './datasets/Scenario A1/'
 RFE_COLUMNS = None
 COMPUTE_ROC = True
 SHOW_FEATURE_DESCRIPTIONS = True
-SHOW_METADATA = False
-SHOW_EDA = False
+SHOW_METADATA = True
+SHOW_EDA = True
 SHOW_ROC = False
 PRINT_ROC = False
 SHOW_CROSS_VALIDATION_RESULTS = True
@@ -81,11 +81,12 @@ normalizer = Normalizer()  # {None, Normalizer, StandardScaler, RobustScaler}
 feature_selectors = [None, 'RFE', 'manual1', 'manual2', 'PCA']
 pca = PCA(.95)
 
-try:
-    shutil.rmtree(OUTPUT_DIR)
-    os.makedirs(OUTPUT_DIR)
-except OSError:
-    pass
+if not os.path.isdir(OUTPUT_DIR):
+    try:
+        shutil.rmtree(OUTPUT_DIR)
+        os.makedirs(OUTPUT_DIR)
+    except OSError as error:
+        print(error)
 
 # set up logging
 logging.basicConfig(filename='results/output.log', format='',
