@@ -81,15 +81,16 @@ normalizer = Normalizer()  # {None, Normalizer, StandardScaler, RobustScaler}
 feature_selectors = [None, 'RFE', 'manual1', 'manual2', 'PCA']
 pca = PCA(.95)
 
-if not os.path.isdir(OUTPUT_DIR):
-    try:
-        shutil.rmtree(OUTPUT_DIR)
-        os.makedirs(OUTPUT_DIR)
-    except OSError as error:
-        print(error)
+if os.path.isdir(OUTPUT_DIR):
+    shutil.rmtree(OUTPUT_DIR)
+
+try:
+    os.makedirs(OUTPUT_DIR)
+except OSError as error:
+    print(error)
 
 # set up logging
-logging.basicConfig(filename='results/output.log', format='',
+logging.basicConfig(filename=OUTPUT_DIR + os.path.sep + 'output.log', format='',
                     filemode='w')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
