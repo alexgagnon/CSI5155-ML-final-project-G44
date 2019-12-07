@@ -4,11 +4,11 @@ The purpose of this repository is to use ML algorithms to attempt to classify VP
 
 ## FILES
 
-main.py - the main source code to run
-util.py - supplementary module providing additional functions
-results/ - directory that will be produced when you run main.py (must have write permissions)
-results/output.log - file containing the log output of the results
-results/{dataset}-{classifier}-{feature_selection}.txt - the results of each classifier
+- main.py - the main source code to run
+- util.py - supplementary module providing additional functions
+- results/ - directory that will be produced when you run main.py (must have write permissions)
+- results/output.log - file containing the log output of the results
+- results/{dataset}-{classifier}-{feature_selection}.txt - the results of each classifier
 
 If the code is configured to report EDA, CV results, etc., these will show up in the 'results/' folder
 
