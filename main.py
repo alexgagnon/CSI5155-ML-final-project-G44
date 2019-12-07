@@ -5,11 +5,10 @@ from pprint import pprint
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import wittgenstein as lw
 from itertools import combinations
 from Orange.evaluation import compute_CD, graph_ranks, Results, CrossValidation
 from Orange.data.pandas_compat import table_from_frame
-# from Orange.classification import CN2Learner
+from Orange.classification import CN2Learner
 from scipy import interp, stats
 from scipy.io.arff import loadarff
 from sklearn.cluster import KMeans
@@ -46,10 +45,13 @@ CLASSIFIERS = {
     'svm': SVC(random_state=SEED, gamma='scale'),
     'tree': DecisionTreeClassifier(random_state=SEED),
     'dummy-rule': DummyClassifier(),
-    # 'cn2': # 'hoeffding': HoeffdingTree()
+
+    # not working
+    # 'hoeffding': # 'hoeffding': HoeffdingTree()
+    # 'cn2': ''
 }
 NO_RFE = ['knn', 'svm',
-          'naive-bayes', 'neural-network', 'cn2']
+          'naive-bayes', 'neural-network', 'cn2', 'dummy-rule']
 CROSS_VALIDATION_FOLDS = 10
 FILES = {
     '15s': 'TimeBasedFeatures-Dataset-15s-VPN.arff',
@@ -58,10 +60,10 @@ FILES = {
 }
 FILE_PATH_DIR = './datasets/Scenario A1/'
 RFE_COLUMNS = None
-COMPUTE_ROC = True
-SHOW_FEATURE_DESCRIPTIONS = True
-SHOW_METADATA = True
-SHOW_EDA = True
+COMPUTE_ROC = False
+SHOW_FEATURE_DESCRIPTIONS = False
+SHOW_METADATA = False
+SHOW_EDA = False
 SHOW_ROC = False
 PRINT_ROC = False
 SHOW_CROSS_VALIDATION_RESULTS = True
@@ -307,13 +309,14 @@ for dataset_label, filename in FILES.items():
                 plt.ylabel('True Positive Rate')
                 plt.title('Receiver operating characteristic example')
                 plt.legend(loc="lower right")
-                plt.savefig("results/roc.png")
+                plt.savefig(OUTPUT_DIR + os.path.sep + "roc.png")
 
             classifier_results[label] = results
             if (feature_selector != 'RFE'):
                 if classifier_name not in algorithm_dataset_results:
                     algorithm_dataset_results[classifier_name] = []
-                algorithm_dataset_results[classifier_name].append(results[SCORING_METRIC].mean())
+                algorithm_dataset_results[classifier_name].append(
+                    results[SCORING_METRIC].mean())
             classifier_versions[feature_selector] = results
 
         log("Paired t-test comparison of feature selection methods")
@@ -368,7 +371,7 @@ if (len(classifier_results.keys()) > 1):
     log("Critical differences: {}".format(cd))
     graph_ranks(algorithm_averages.values(),
                 list(algorithm_averages.keys()), cd=cd, width=6, textspace=1.5)
-    plt.savefig('results/nemenyi.png')
+    plt.savefig(OUTPUT_DIR + os.path.sep + 'nemenyi.png')
 
     log("Dataset results")
     log(algorithm_dataset_results)
